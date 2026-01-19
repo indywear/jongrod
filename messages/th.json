@@ -1,0 +1,235 @@
+{
+  "common": {
+    "siteName": "Jongrod",
+    "search": "ค้นหา",
+    "login": "เข้าสู่ระบบ",
+    "register": "สมัครสมาชิก",
+    "logout": "ออกจากระบบ",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
+    "confirm": "ยืนยัน",
+    "loading": "กำลังโหลด...",
+    "error": "เกิดข้อผิดพลาด",
+    "success": "สำเร็จ",
+    "noData": "ไม่มีข้อมูล",
+    "viewAll": "ดูทั้งหมด",
+    "back": "กลับ",
+    "next": "ถัดไป",
+    "previous": "ก่อนหน้า",
+    "submit": "ส่ง",
+    "filter": "กรอง",
+    "sort": "เรียงตาม",
+    "all": "ทั้งหมด",
+    "showing": "แสดง",
+    "of": "จาก",
+    "items": "รายการ",
+    "page": "หน้า"
+  },
+  "nav": {
+    "home": "หน้าแรก",
+    "cars": "รถให้เช่า",
+    "about": "เกี่ยวกับเรา",
+    "contact": "ติดต่อเรา",
+    "faq": "คำถามที่พบบ่อย",
+    "profile": "โปรไฟล์",
+    "myBookings": "การจองของฉัน",
+    "documents": "เอกสาร",
+    "partnerDashboard": "แดชบอร์ดพาร์ทเนอร์",
+    "adminDashboard": "แดชบอร์ดแอดมิน"
+  },
+  "home": {
+    "heroTitle": "เช่ารถง่าย สะดวก ปลอดภัย",
+    "heroSubtitle": "รถให้เช่าหลากหลาย ราคาคุ้มค่า พร้อมบริการครบวงจร",
+    "searchPlaceholder": "ค้นหารถที่ต้องการ...",
+    "pickupDate": "วันรับรถ",
+    "returnDate": "วันคืนรถ",
+    "carType": "ประเภทรถ",
+    "featuredCars": "รถแนะนำ",
+    "whyChooseUs": "ทำไมต้องเลือกเรา",
+    "easyBooking": "จองง่าย",
+    "easyBookingDesc": "จองรถออนไลน์ได้ตลอด 24 ชั่วโมง",
+    "bestPrice": "ราคาดีที่สุด",
+    "bestPriceDesc": "เปรียบเทียบราคาจากหลายร้านในที่เดียว",
+    "verified": "ปลอดภัยมั่นใจ",
+    "verifiedDesc": "รถทุกคันผ่านการตรวจสอบคุณภาพ"
+  },
+  "cars": {
+    "title": "รถให้เช่า",
+    "filter": {
+      "category": "ประเภท",
+      "transmission": "เกียร์",
+      "fuelType": "เชื้อเพลิง",
+      "priceRange": "ช่วงราคา",
+      "brand": "ยี่ห้อ"
+    },
+    "category": {
+      "SEDAN": "ซีดาน",
+      "SUV": "เอสยูวี",
+      "VAN": "แวน",
+      "PICKUP": "กระบะ",
+      "LUXURY": "หรูหรา",
+      "COMPACT": "ขนาดเล็ก",
+      "MOTORCYCLE": "มอเตอร์ไซค์"
+    },
+    "transmission": {
+      "AUTO": "ออโต้",
+      "MANUAL": "ธรรมดา"
+    },
+    "fuelType": {
+      "PETROL": "เบนซิน",
+      "DIESEL": "ดีเซล",
+      "HYBRID": "ไฮบริด",
+      "EV": "ไฟฟ้า"
+    },
+    "sort": {
+      "price_asc": "ราคาต่ำ-สูง",
+      "price_desc": "ราคาสูง-ต่ำ",
+      "newest": "ใหม่สุด"
+    },
+    "perDay": "บาท/วัน",
+    "bookNow": "จองเลย",
+    "viewDetails": "ดูรายละเอียด",
+    "seats": "ที่นั่ง",
+    "doors": "ประตู",
+    "year": "ปี",
+    "features": "สิ่งอำนวยความสะดวก",
+    "specifications": "สเปค",
+    "partnerInfo": "ข้อมูลร้านเช่า"
+  },
+  "booking": {
+    "title": "จองรถ",
+    "step1": "เลือกวันเวลา",
+    "step2": "ข้อมูลลูกค้า",
+    "step3": "สรุปการจอง",
+    "step4": "ยืนยัน",
+    "pickupDateTime": "วันเวลารับรถ",
+    "returnDateTime": "วันเวลาคืนรถ",
+    "pickupLocation": "สถานที่รับรถ",
+    "returnLocation": "สถานที่คืนรถ",
+    "customerInfo": "ข้อมูลผู้จอง",
+    "name": "ชื่อ-นามสกุล",
+    "email": "อีเมล",
+    "phone": "เบอร์โทร",
+    "note": "หมายเหตุ",
+    "summary": "สรุปการจอง",
+    "totalDays": "จำนวนวัน",
+    "pricePerDay": "ราคาต่อวัน",
+    "totalPrice": "ราคารวม",
+    "confirmBooking": "ยืนยันการจอง",
+    "bookingSuccess": "จองสำเร็จ!",
+    "bookingNumber": "หมายเลขการจอง",
+    "thankYou": "ขอบคุณที่ใช้บริการ"
+  },
+  "auth": {
+    "loginTitle": "เข้าสู่ระบบ",
+    "registerTitle": "สมัครสมาชิก",
+    "email": "อีเมล",
+    "phone": "เบอร์โทร",
+    "password": "รหัสผ่าน",
+    "confirmPassword": "ยืนยันรหัสผ่าน",
+    "firstName": "ชื่อ",
+    "lastName": "นามสกุล",
+    "forgotPassword": "ลืมรหัสผ่าน?",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "hasAccount": "มีบัญชีอยู่แล้ว?",
+    "loginButton": "เข้าสู่ระบบ",
+    "registerButton": "สมัครสมาชิก"
+  },
+  "profile": {
+    "title": "โปรไฟล์",
+    "editProfile": "แก้ไขโปรไฟล์",
+    "changePassword": "เปลี่ยนรหัสผ่าน",
+    "currentPassword": "รหัสผ่านปัจจุบัน",
+    "newPassword": "รหัสผ่านใหม่",
+    "language": "ภาษา"
+  },
+  "myBookings": {
+    "title": "การจองของฉัน",
+    "status": {
+      "NEW": "รอดำเนินการ",
+      "CLAIMED": "กำลังดำเนินการ",
+      "PICKUP": "รอรับรถ",
+      "ACTIVE": "กำลังใช้งาน",
+      "RETURN": "รอคืนรถ",
+      "COMPLETED": "เสร็จสิ้น",
+      "CANCELLED": "ยกเลิก"
+    },
+    "cancelBooking": "ยกเลิกการจอง"
+  },
+  "documents": {
+    "title": "เอกสาร",
+    "idCard": "บัตรประชาชน",
+    "driverLicense": "ใบขับขี่",
+    "front": "ด้านหน้า",
+    "back": "ด้านหลัง",
+    "selfie": "รูปถ่ายตัวเอง",
+    "upload": "อัพโหลด",
+    "status": {
+      "PENDING": "รอตรวจสอบ",
+      "APPROVED": "อนุมัติแล้ว",
+      "REJECTED": "ถูกปฏิเสธ"
+    }
+  },
+  "partner": {
+    "dashboard": "แดชบอร์ด",
+    "cars": "จัดการรถ",
+    "leads": "Leads",
+    "docApproval": "ตรวจสอบเอกสาร",
+    "team": "ทีมงาน",
+    "settings": "ตั้งค่า",
+    "export": "ส่งออกข้อมูล",
+    "stats": {
+      "totalCars": "รถทั้งหมด",
+      "availableCars": "รถว่าง",
+      "rentedCars": "รถถูกเช่า",
+      "todayLeads": "Leads วันนี้",
+      "pendingLeads": "Leads รอดำเนินการ",
+      "weekLeads": "Leads สัปดาห์นี้",
+      "monthRevenue": "รายได้เดือนนี้"
+    },
+    "addCar": "เพิ่มรถ",
+    "editCar": "แก้ไขรถ",
+    "carForm": {
+      "brand": "ยี่ห้อ",
+      "model": "รุ่น",
+      "year": "ปี",
+      "licensePlate": "ทะเบียน",
+      "category": "ประเภท",
+      "transmission": "เกียร์",
+      "fuelType": "เชื้อเพลิง",
+      "seats": "ที่นั่ง",
+      "doors": "ประตู",
+      "pricePerDay": "ราคาต่อวัน",
+      "features": "สิ่งอำนวยความสะดวก",
+      "images": "รูปภาพ"
+    },
+    "leadActions": {
+      "claim": "รับงาน",
+      "confirmPickup": "ยืนยันรับรถ",
+      "confirmReturn": "ยืนยันคืนรถ"
+    }
+  },
+  "admin": {
+    "dashboard": "แดชบอร์ด",
+    "partners": "พาร์ทเนอร์",
+    "carApproval": "อนุมัติรถ",
+    "docApproval": "อนุมัติเอกสาร",
+    "blacklist": "Blacklist",
+    "commissions": "ค่าคอมมิชชั่น",
+    "cms": "จัดการเนื้อหา",
+    "settings": "ตั้งค่า",
+    "approve": "อนุมัติ",
+    "reject": "ปฏิเสธ",
+    "suspend": "ระงับ",
+    "activate": "เปิดใช้งาน"
+  },
+  "footer": {
+    "about": "เกี่ยวกับเรา",
+    "terms": "ข้อกำหนดการใช้งาน",
+    "privacy": "นโยบายความเป็นส่วนตัว",
+    "contact": "ติดต่อเรา",
+    "copyright": "สงวนลิขสิทธิ์"
+  }
+}

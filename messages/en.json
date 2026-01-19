@@ -1,0 +1,235 @@
+{
+  "common": {
+    "siteName": "Jongrod",
+    "search": "Search",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "noData": "No data",
+    "viewAll": "View all",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "filter": "Filter",
+    "sort": "Sort by",
+    "all": "All",
+    "showing": "Showing",
+    "of": "of",
+    "items": "items",
+    "page": "Page"
+  },
+  "nav": {
+    "home": "Home",
+    "cars": "Cars",
+    "about": "About",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "profile": "Profile",
+    "myBookings": "My Bookings",
+    "documents": "Documents",
+    "partnerDashboard": "Partner Dashboard",
+    "adminDashboard": "Admin Dashboard"
+  },
+  "home": {
+    "heroTitle": "Easy, Convenient, Safe Car Rental",
+    "heroSubtitle": "Wide selection of rental cars at great prices with full service",
+    "searchPlaceholder": "Search for a car...",
+    "pickupDate": "Pickup Date",
+    "returnDate": "Return Date",
+    "carType": "Car Type",
+    "featuredCars": "Featured Cars",
+    "whyChooseUs": "Why Choose Us",
+    "easyBooking": "Easy Booking",
+    "easyBookingDesc": "Book your car online 24/7",
+    "bestPrice": "Best Price",
+    "bestPriceDesc": "Compare prices from multiple shops in one place",
+    "verified": "Verified & Safe",
+    "verifiedDesc": "All cars are quality inspected"
+  },
+  "cars": {
+    "title": "Rental Cars",
+    "filter": {
+      "category": "Category",
+      "transmission": "Transmission",
+      "fuelType": "Fuel Type",
+      "priceRange": "Price Range",
+      "brand": "Brand"
+    },
+    "category": {
+      "SEDAN": "Sedan",
+      "SUV": "SUV",
+      "VAN": "Van",
+      "PICKUP": "Pickup",
+      "LUXURY": "Luxury",
+      "COMPACT": "Compact",
+      "MOTORCYCLE": "Motorcycle"
+    },
+    "transmission": {
+      "AUTO": "Automatic",
+      "MANUAL": "Manual"
+    },
+    "fuelType": {
+      "PETROL": "Petrol",
+      "DIESEL": "Diesel",
+      "HYBRID": "Hybrid",
+      "EV": "Electric"
+    },
+    "sort": {
+      "price_asc": "Price: Low to High",
+      "price_desc": "Price: High to Low",
+      "newest": "Newest"
+    },
+    "perDay": "THB/day",
+    "bookNow": "Book Now",
+    "viewDetails": "View Details",
+    "seats": "Seats",
+    "doors": "Doors",
+    "year": "Year",
+    "features": "Features",
+    "specifications": "Specifications",
+    "partnerInfo": "Rental Shop Info"
+  },
+  "booking": {
+    "title": "Book a Car",
+    "step1": "Select Date & Time",
+    "step2": "Customer Info",
+    "step3": "Summary",
+    "step4": "Confirmation",
+    "pickupDateTime": "Pickup Date & Time",
+    "returnDateTime": "Return Date & Time",
+    "pickupLocation": "Pickup Location",
+    "returnLocation": "Return Location",
+    "customerInfo": "Customer Information",
+    "name": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "note": "Note",
+    "summary": "Booking Summary",
+    "totalDays": "Total Days",
+    "pricePerDay": "Price per Day",
+    "totalPrice": "Total Price",
+    "confirmBooking": "Confirm Booking",
+    "bookingSuccess": "Booking Successful!",
+    "bookingNumber": "Booking Number",
+    "thankYou": "Thank you for your booking"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "registerTitle": "Register",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginButton": "Login",
+    "registerButton": "Register"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "language": "Language"
+  },
+  "myBookings": {
+    "title": "My Bookings",
+    "status": {
+      "NEW": "Pending",
+      "CLAIMED": "Processing",
+      "PICKUP": "Awaiting Pickup",
+      "ACTIVE": "Active",
+      "RETURN": "Awaiting Return",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "cancelBooking": "Cancel Booking"
+  },
+  "documents": {
+    "title": "Documents",
+    "idCard": "ID Card",
+    "driverLicense": "Driver's License",
+    "front": "Front",
+    "back": "Back",
+    "selfie": "Selfie",
+    "upload": "Upload",
+    "status": {
+      "PENDING": "Pending Review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    }
+  },
+  "partner": {
+    "dashboard": "Dashboard",
+    "cars": "Manage Cars",
+    "leads": "Leads",
+    "docApproval": "Document Verification",
+    "team": "Team",
+    "settings": "Settings",
+    "export": "Export Data",
+    "stats": {
+      "totalCars": "Total Cars",
+      "availableCars": "Available",
+      "rentedCars": "Rented",
+      "todayLeads": "Today's Leads",
+      "pendingLeads": "Pending Leads",
+      "weekLeads": "This Week's Leads",
+      "monthRevenue": "This Month's Revenue"
+    },
+    "addCar": "Add Car",
+    "editCar": "Edit Car",
+    "carForm": {
+      "brand": "Brand",
+      "model": "Model",
+      "year": "Year",
+      "licensePlate": "License Plate",
+      "category": "Category",
+      "transmission": "Transmission",
+      "fuelType": "Fuel Type",
+      "seats": "Seats",
+      "doors": "Doors",
+      "pricePerDay": "Price per Day",
+      "features": "Features",
+      "images": "Images"
+    },
+    "leadActions": {
+      "claim": "Claim",
+      "confirmPickup": "Confirm Pickup",
+      "confirmReturn": "Confirm Return"
+    }
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "partners": "Partners",
+    "carApproval": "Car Approval",
+    "docApproval": "Document Approval",
+    "blacklist": "Blacklist",
+    "commissions": "Commissions",
+    "cms": "Content Management",
+    "settings": "Settings",
+    "approve": "Approve",
+    "reject": "Reject",
+    "suspend": "Suspend",
+    "activate": "Activate"
+  },
+  "footer": {
+    "about": "About Us",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "contact": "Contact Us",
+    "copyright": "All rights reserved"
+  }
+}

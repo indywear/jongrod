@@ -1,0 +1,345 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  PARTNER_ADMIN
+  PLATFORM_OWNER
+}
+
+enum CarCategory {
+  SEDAN
+  SUV
+  VAN
+  PICKUP
+  LUXURY
+  COMPACT
+  MOTORCYCLE
+}
+
+enum Transmission {
+  AUTO
+  MANUAL
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  EV
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RentalStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+}
+
+enum LeadStatus {
+  NEW
+  CLAIMED
+  PICKUP
+  ACTIVE
+  RETURN
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVER_LICENSE
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PartnerStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum PartnerRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+enum BannerPosition {
+  HOMEPAGE_HERO
+  HOMEPAGE_MIDDLE
+  LISTING_TOP
+  POPUP
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String?   @unique
+  phone             String?   @unique
+  password          String
+  firstName         String
+  lastName          String
+  avatarUrl         String?
+  role              UserRole  @default(CUSTOMER)
+  isBlacklisted     Boolean   @default(false)
+  languagePreference String   @default("th")
+  isEmailVerified   Boolean   @default(false)
+  isPhoneVerified   Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  bookings          Booking[]
+  documents         Document[]
+  partnerAdmins     PartnerAdmin[]
+  claimedBookings   Booking[]       @relation("ClaimedBy")
+  pickupConfirmed   Booking[]       @relation("PickupConfirmedBy")
+  returnConfirmed   Booking[]       @relation("ReturnConfirmedBy")
+  reviewedDocuments Document[]      @relation("ReviewedBy")
+  addedBlacklist    Blacklist[]
+  articles          Article[]
+
+  @@map("users")
+}
+
+model Partner {
+  id              String        @id @default(cuid())
+  name            String
+  logoUrl         String?
+  contactEmail    String
+  phone           String
+  commissionRate  Decimal       @default(5.0)
+  status          PartnerStatus @default(ACTIVE)
+  telegramChatId  String?
+  minAdvanceHours Int           @default(24)
+  operatingHours  Json?
+  pickupLocations Json          @default("[]")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  cars            Car[]
+  bookings        Booking[]
+  admins          PartnerAdmin[]
+  commissionLogs  CommissionLog[]
+
+  @@map("partners")
+}
+
+model PartnerAdmin {
+  id            String      @id @default(cuid())
+  partnerId     String
+  userId        String
+  role          PartnerRole @default(STAFF)
+  canClaimLeads Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  partner       Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, userId])
+  @@map("partner_admins")
+}
+
+model Car {
+  id             String         @id @default(cuid())
+  partnerId      String
+  brand          String
+  model          String
+  year           Int
+  licensePlate   String         @unique
+  category       CarCategory
+  transmission   Transmission
+  fuelType       FuelType
+  seats          Int
+  doors          Int
+  features       Json           @default("[]")
+  images         Json           @default("[]")
+  pricePerDay    Decimal
+  approvalStatus ApprovalStatus @default(PENDING)
+  rentalStatus   RentalStatus   @default(AVAILABLE)
+  lockedUntil    DateTime?
+  lockedBySession String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  partner        Partner        @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  bookings       Booking[]
+
+  @@map("cars")
+}
+
+model Booking {
+  id                  String      @id @default(cuid())
+  bookingNumber       String      @unique @default(cuid())
+  userId              String?
+  carId               String
+  partnerId           String
+  customerName        String
+  customerEmail       String
+  customerPhone       String
+  customerNote        String?
+  pickupDatetime      DateTime
+  returnDatetime      DateTime
+  pickupLocation      String
+  returnLocation      String
+  totalPrice          Decimal
+  leadStatus          LeadStatus  @default(NEW)
+  reservedUntil       DateTime?
+  claimedById         String?
+  claimedAt           DateTime?
+  pickupConfirmedAt   DateTime?
+  pickupConfirmedById String?
+  returnConfirmedAt   DateTime?
+  returnConfirmedById String?
+  cancellationReason  String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  user                User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  car                 Car         @relation(fields: [carId], references: [id], onDelete: Cascade)
+  partner             Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  claimedBy           User?       @relation("ClaimedBy", fields: [claimedById], references: [id], onDelete: SetNull)
+  pickupConfirmedBy   User?       @relation("PickupConfirmedBy", fields: [pickupConfirmedById], references: [id], onDelete: SetNull)
+  returnConfirmedBy   User?       @relation("ReturnConfirmedBy", fields: [returnConfirmedById], references: [id], onDelete: SetNull)
+  commissionLog       CommissionLog?
+
+  @@map("bookings")
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  userId          String
+  type            DocumentType
+  documentNumber  String
+  frontImageUrl   String
+  backImageUrl    String?
+  selfieUrl       String?
+  ocrData         Json?
+  faceMatchScore  Float?
+  expiresAt       DateTime?
+  status          DocumentStatus @default(PENDING)
+  reviewedById    String?
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy      User?          @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@map("documents")
+}
+
+model Blacklist {
+  id              String   @id @default(cuid())
+  documentNumber  String   @unique
+  fullName        String
+  phone           String?
+  email           String?
+  reason          String
+  evidenceUrls    Json     @default("[]")
+  addedById       String
+  createdAt       DateTime @default(now())
+
+  addedBy         User     @relation(fields: [addedById], references: [id], onDelete: Cascade)
+
+  @@map("blacklist")
+}
+
+model CommissionLog {
+  id               String           @id @default(cuid())
+  partnerId        String
+  bookingId        String           @unique
+  bookingAmount    Decimal
+  commissionRate   Decimal
+  commissionAmount Decimal
+  status           CommissionStatus @default(PENDING)
+  paidAt           DateTime?
+  createdAt        DateTime         @default(now())
+
+  partner          Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  booking          Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("commission_logs")
+}
+
+model Banner {
+  id          String         @id @default(cuid())
+  title       String
+  imageUrl    String
+  linkUrl     String?
+  position    BannerPosition
+  sortOrder   Int            @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("banners")
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  titleTh         String
+  titleEn         String
+  contentTh       String   @db.Text
+  contentEn       String   @db.Text
+  metaTitleTh     String?
+  metaTitleEn     String?
+  metaDescTh      String?
+  metaDescEn      String?
+  isPublished     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("pages")
+}
+
+model Article {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  titleTh       String
+  titleEn       String
+  contentTh     String    @db.Text
+  contentEn     String    @db.Text
+  excerptTh     String?
+  excerptEn     String?
+  featuredImage String?
+  category      String?
+  authorId      String
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("articles")
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
