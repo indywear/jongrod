@@ -69,6 +69,17 @@ export const getApiDocs = async () => {
               logoUrl: { type: "string", nullable: true },
             },
           },
+          UserRegister: {
+            type: "object",
+            required: ["email", "password", "firstName", "lastName", "phone"],
+            properties: {
+              email: { type: "string", format: "email" },
+              password: { type: "string", minLength: 6 },
+              firstName: { type: "string" },
+              lastName: { type: "string" },
+              phone: { type: "string" },
+            },
+          },
           Error: {
             type: "object",
             properties: {
