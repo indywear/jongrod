@@ -5,6 +5,36 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  /**
+   * @swagger
+   * /api/cars/{id}:
+   *   get:
+   *     summary: Get car details
+   *     description: Retrieve detailed information about a specific car by its ID.
+   *     tags:
+   *       - Cars
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Car ID
+   *     responses:
+   *       200:
+   *         description: Car details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 car:
+   *                   $ref: '#/components/schemas/Car'
+   *       404:
+   *         description: Car not found
+   *       500:
+   *         description: Internal server error
+   */
   try {
     const { id } = await params
 
