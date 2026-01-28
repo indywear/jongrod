@@ -38,11 +38,13 @@ export function Navbar() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch {
-        setUser(null)
-      }
+      setTimeout(() => {
+        try {
+          setUser(JSON.parse(storedUser))
+        } catch {
+          setUser(null)
+        }
+      }, 0)
     }
   }, [])
 
@@ -82,9 +84,8 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                pathname === link.href ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`text-sm font-medium transition-colors hover:text-primary ${pathname === link.href ? "text-primary" : "text-muted-foreground"
+                }`}
             >
               {link.label}
             </Link>
@@ -176,9 +177,8 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`text-lg font-medium ${
-                      pathname === link.href ? "text-primary" : "text-muted-foreground"
-                    }`}
+                    className={`text-lg font-medium ${pathname === link.href ? "text-primary" : "text-muted-foreground"
+                      }`}
                   >
                     {link.label}
                   </Link>

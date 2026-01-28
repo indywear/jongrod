@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Popover,
   PopoverContent,
@@ -58,8 +57,15 @@ export function ThaiDateTimePicker({
 
   useEffect(() => {
     if (value) {
-      setCurrentMonth(new Date(value))
+      const newDate = new Date(value)
+      if (
+        newDate.getMonth() !== currentMonth.getMonth() ||
+        newDate.getFullYear() !== currentMonth.getFullYear()
+      ) {
+        setCurrentMonth(newDate)
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   const toThaiYear = (year: number) => year + 543
