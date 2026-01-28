@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getPublicUrl } from "@/lib/storage"
 
 export async function GET(request: NextRequest) {
   /**
@@ -53,12 +54,21 @@ export async function GET(request: NextRequest) {
       { startDate: { lte: now }, endDate: { gte: now } },
     ]
 
+
+    // ... inside GET ...
     const banners = await prisma.banner.findMany({
       where,
       orderBy: { sortOrder: "asc" },
     })
 
-    return NextResponse.json({ banners })
+    const bannersWithUrls = banners.map((banner) => ({
+      ...banner,
+      imageUrl: banner.imageUrl.startsWith("http")
+        ? banner.imageUrl
+        : getPublicUrl("banners", banner.imageUrl),
+    }))
+
+    return NextResponse.json({ banners: bannersWithUrls })
   } catch (error) {
     console.error("Error fetching active banners:", error)
     return NextResponse.json(

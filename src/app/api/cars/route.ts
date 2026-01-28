@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+import { getPublicUrl } from "@/lib/storage"
+
 /**
  * @swagger
  * /api/cars:
@@ -61,7 +63,24 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        return NextResponse.json({ cars })
+        const carsWithUrls = cars.map((car) => ({
+            ...car,
+            images: Array.isArray(car.images)
+                ? (car.images as string[]).map((img) =>
+                    img.startsWith("http") ? img : getPublicUrl("car-images", img)
+                )
+                : [],
+            partner: {
+                ...car.partner,
+                logoUrl: car.partner.logoUrl
+                    ? car.partner.logoUrl.startsWith("http")
+                        ? car.partner.logoUrl
+                        : getPublicUrl("avatars", car.partner.logoUrl)
+                    : null,
+            },
+        }))
+
+        return NextResponse.json({ cars: carsWithUrls })
     } catch (error) {
         console.error("Error fetching cars:", error)
         return NextResponse.json(
