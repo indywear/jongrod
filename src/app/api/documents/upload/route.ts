@@ -162,39 +162,7 @@ export async function POST(request: NextRequest) {
     }
     uploadedUrls.driverLicense = driverLicenseResult.url!
 
-    // Save document records to database
-    const userId = session?.user?.id || booking.userId
-    if (userId) {
-      const documentRecords = []
-
-      documentRecords.push({
-        userId,
-        type: "ID_CARD" as const,
-        url: uploadedUrls.idCardFront,
-        status: "PENDING" as const,
-      })
-
-      if (uploadedUrls.idCardBack) {
-        documentRecords.push({
-          userId,
-          type: "ID_CARD" as const,
-          url: uploadedUrls.idCardBack,
-          status: "PENDING" as const,
-        })
-      }
-
-      documentRecords.push({
-        userId,
-        type: "DRIVER_LICENSE" as const,
-        url: uploadedUrls.driverLicense,
-        status: "PENDING" as const,
-      })
-
-      await prisma.document.createMany({
-        data: documentRecords,
-      })
-    }
-
+    // Send Telegram notification for document upload
     if (booking.partner.telegramChatId) {
       sendBookingNotification(booking.partner.telegramChatId, {
         bookingNumber: booking.bookingNumber,
