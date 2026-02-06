@@ -74,9 +74,11 @@ export async function GET(request: NextRequest) {
         const carsWithUrls = cars.map((car) => ({
             ...car,
             images: Array.isArray(car.images)
-                ? (car.images as string[]).map((img) =>
-                    img.startsWith("http") ? img : getPublicUrl("car-images", img)
-                )
+                ? (car.images as string[]).map((img) => {
+                    if (img.startsWith("http")) return img
+                    if (img.startsWith("uploads/")) return `/${img}`
+                    return getPublicUrl("car-images", img)
+                })
                 : [],
             partner: {
                 ...car.partner,
