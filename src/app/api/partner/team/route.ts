@@ -5,7 +5,9 @@ import { z } from "zod"
 
 const addTeamMemberSchema = z.object({
   email: z.string().email("Invalid email format"),
-  role: z.string().min(1, "Role is required"),
+  role: z.enum(["OWNER", "ADMIN", "STAFF"], {
+    errorMap: () => ({ message: "Role must be OWNER, ADMIN, or STAFF" }),
+  }),
 })
 
 export async function GET(request: NextRequest) {
