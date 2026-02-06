@@ -118,8 +118,14 @@ export default function CarDetailPage({
                 }}
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Car className="h-24 w-24 text-muted-foreground/50" />
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  width={180}
+                  height={60}
+                  className="opacity-50"
+                />
               </div>
             )}
           </div>

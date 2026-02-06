@@ -282,8 +282,14 @@ export default function CarsPage() {
                           }}
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Car className="h-12 w-12 text-muted-foreground/50" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                          <Image
+                            src="/logo.png"
+                            alt="Logo"
+                            width={120}
+                            height={40}
+                            className="opacity-50"
+                          />
                         </div>
                       )}
                       <Badge className="absolute top-2 right-2">
