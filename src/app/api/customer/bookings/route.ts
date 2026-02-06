@@ -1,20 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireCustomer, verifyUserOwnership } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
+  // Require customer role
+  const authResult = await requireCustomer(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId")
+    const userId = searchParams.get("userId") || authResult.user.id
     const status = searchParams.get("status")
 
-    if (!userId) {
-      return NextResponse.json({ bookings: [] })
+    // Verify user ownership
+    const ownershipResult = await verifyUserOwnership(request, userId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const where: Record<string, unknown> = { userId }
 
     if (status && status !== "all") {
-      where.leadStatus = status
+      const validStatuses = ["NEW", "CLAIMED", "PICKUP", "ACTIVE", "RETURN", "COMPLETED", "CANCELLED"]
+      if (validStatuses.includes(status)) {
+        where.leadStatus = status
+      }
     }
 
     const bookings = await prisma.booking.findMany({
@@ -64,6 +76,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  // Require customer role
+  const authResult = await requireCustomer(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
     const { bookingId, status } = body
@@ -71,6 +89,14 @@ export async function PATCH(request: NextRequest) {
     if (!bookingId || !status) {
       return NextResponse.json(
         { error: "Booking ID and status are required" },
+        { status: 400 }
+      )
+    }
+
+    // Only allow CANCELLED status from customer
+    if (status !== "CANCELLED") {
+      return NextResponse.json(
+        { error: "Invalid status" },
         { status: 400 }
       )
     }
@@ -86,6 +112,20 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // Verify user ownership
+    if (booking.userId) {
+      const ownershipResult = await verifyUserOwnership(request, booking.userId)
+      if (ownershipResult instanceof NextResponse) {
+        return ownershipResult
+      }
+    } else {
+      // Guest booking - only admin can modify
+      return NextResponse.json(
+        { error: "Not authorized to modify this booking" },
+        { status: 403 }
+      )
+    }
+
     if (booking.leadStatus !== "NEW") {
       return NextResponse.json(
         { error: "Can only cancel NEW bookings" },
@@ -95,7 +135,10 @@ export async function PATCH(request: NextRequest) {
 
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
-      data: { leadStatus: status },
+      data: {
+        leadStatus: status,
+        cancellationReason: "Cancelled by customer",
+      },
     })
 
     return NextResponse.json({ booking: updatedBooking })

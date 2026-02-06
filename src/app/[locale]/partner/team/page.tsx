@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -50,37 +51,21 @@ interface UserData {
 
 export default function TeamPage() {
   const t = useTranslations()
+  const { user, isLoading: authLoading } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState("")
   const [inviteRole, setInviteRole] = useState("STAFF")
   const [team, setTeam] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [partnerId, setPartnerId] = useState<string | null>(null)
+
+  const partnerId = user?.partnerId
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData: UserData = JSON.parse(storedUser)
-        if (userData.partnerId) {
-          setPartnerId(userData.partnerId)
-        } else {
-          setPartnerId("av-carrent-official")
-        }
-      } catch {
-        setPartnerId("av-carrent-official")
-      }
-    } else {
-      setPartnerId("av-carrent-official")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (partnerId) {
+    if (!authLoading && partnerId) {
       fetchTeam()
     }
-  }, [partnerId])
+  }, [authLoading, partnerId])
 
   const fetchTeam = async () => {
     if (!partnerId) return
@@ -176,7 +161,7 @@ export default function TeamPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

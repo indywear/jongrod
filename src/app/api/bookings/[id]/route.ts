@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getSession, requireAuth, verifyUserOwnership } from "@/lib/auth"
 
 export async function GET(
   request: NextRequest,
@@ -39,7 +40,47 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ booking })
+    // Check access permissions
+    const { user } = await getSession(request)
+
+    if (!user) {
+      // Guest access - only allow basic info for their own booking
+      return NextResponse.json({
+        booking: {
+          id: booking.id,
+          bookingNumber: booking.bookingNumber,
+          car: booking.car,
+          pickupDatetime: booking.pickupDatetime,
+          returnDatetime: booking.returnDatetime,
+          totalPrice: booking.totalPrice,
+          leadStatus: booking.leadStatus,
+        },
+      })
+    }
+
+    // Admin can see all
+    if (user.role === "PLATFORM_OWNER") {
+      return NextResponse.json({ booking })
+    }
+
+    // Partner can see their bookings
+    if (user.role === "PARTNER_ADMIN" && user.partnerId === booking.partnerId) {
+      return NextResponse.json({ booking })
+    }
+
+    // Customer can only see their own bookings
+    if (booking.userId === user.id) {
+      return NextResponse.json({ booking })
+    }
+
+    // Otherwise return limited info
+    return NextResponse.json({
+      booking: {
+        id: booking.id,
+        bookingNumber: booking.bookingNumber,
+        leadStatus: booking.leadStatus,
+      },
+    })
   } catch (error) {
     console.error("Error fetching booking:", error)
     return NextResponse.json(
@@ -53,9 +94,16 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireAuth(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
+    const { leadStatus } = body
 
     const booking = await prisma.booking.findUnique({
       where: { id },
@@ -68,7 +116,28 @@ export async function PATCH(
       )
     }
 
-    if (booking.leadStatus !== "NEW" && body.leadStatus === "CANCELLED") {
+    // Validate permission
+    const user = authResult.user
+    let canModify = false
+
+    if (user.role === "PLATFORM_OWNER") {
+      canModify = true
+    } else if (user.role === "PARTNER_ADMIN" && user.partnerId === booking.partnerId) {
+      canModify = true
+    } else if (booking.userId === user.id) {
+      // Customer can only cancel their own booking
+      canModify = leadStatus === "CANCELLED"
+    }
+
+    if (!canModify) {
+      return NextResponse.json(
+        { error: "Not authorized to modify this booking" },
+        { status: 403 }
+      )
+    }
+
+    // Validate status transition
+    if (leadStatus === "CANCELLED") {
       if (!["NEW", "CLAIMED"].includes(booking.leadStatus)) {
         return NextResponse.json(
           { error: "Cannot cancel booking at this stage" },
@@ -77,10 +146,20 @@ export async function PATCH(
       }
     }
 
+    // Only allow valid status values
+    const validStatuses = ["NEW", "CLAIMED", "PICKUP", "ACTIVE", "RETURN", "COMPLETED", "CANCELLED"]
+    if (!validStatuses.includes(leadStatus)) {
+      return NextResponse.json(
+        { error: "Invalid status" },
+        { status: 400 }
+      )
+    }
+
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
-        leadStatus: body.leadStatus,
+        leadStatus,
+        cancellationReason: leadStatus === "CANCELLED" ? body.reason || "Cancelled" : undefined,
       },
     })
 

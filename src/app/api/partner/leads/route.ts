@@ -1,63 +1,96 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const partnerId = searchParams.get("partnerId")
+    const partnerId = searchParams.get("partnerId") || authResult.user.partnerId
     const status = searchParams.get("status")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "20")
+    const skip = (page - 1) * limit
 
     if (!partnerId) {
-      return NextResponse.json({ leads: [] })
+      return NextResponse.json({ leads: [], pagination: null })
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const where: Record<string, unknown> = { partnerId }
-    
-    if (status) {
+
+    if (status && ["NEW", "CLAIMED", "PICKUP", "ACTIVE", "RETURN", "COMPLETED", "CANCELLED"].includes(status)) {
       where.leadStatus = status
     }
 
-    const bookings = await prisma.booking.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        car: {
-          select: {
-            brand: true,
-            model: true,
-            year: true,
+    // Get bookings with pagination
+    const [bookings, total] = await Promise.all([
+      prisma.booking.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: {
+          car: {
+            select: {
+              brand: true,
+              model: true,
+              year: true,
+            },
+          },
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              phone: true,
+            },
           },
         },
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phone: true,
-          },
-        },
-      },
-    })
+        skip,
+        take: limit,
+      }),
+      prisma.booking.count({ where }),
+    ])
 
-    const blacklistEntries = await prisma.blacklist.findMany({
-      select: {
-        documentNumber: true,
-        phone: true,
-        fullName: true,
-      },
-    })
-    
+    // Get only relevant blacklist entries (by phones in current bookings)
+    const customerPhones = bookings
+      .map(b => b.user?.phone || b.customerPhone)
+      .filter(Boolean) as string[]
+
+    const blacklistEntries = customerPhones.length > 0
+      ? await prisma.blacklist.findMany({
+          where: {
+            OR: [
+              { phone: { in: customerPhones } },
+            ],
+          },
+          select: {
+            phone: true,
+            fullName: true,
+          },
+        })
+      : []
+
     const blacklistPhones = new Set(blacklistEntries.map(b => b.phone).filter(Boolean))
     const blacklistNames = new Set(blacklistEntries.map(b => b.fullName.toLowerCase()))
 
     const leads = bookings.map((booking) => {
-      const customerName = booking.user 
+      const customerName = booking.user
         ? `${booking.user.firstName} ${booking.user.lastName}`
         : booking.customerName || "ลูกค้า"
       const customerPhone = booking.user?.phone || booking.customerPhone || "-"
-      
-      const isBlacklisted = blacklistPhones.has(customerPhone) || 
-                           blacklistNames.has(customerName.toLowerCase())
-      
+
+      const isBlacklisted = blacklistPhones.has(customerPhone) ||
+        blacklistNames.has(customerName.toLowerCase())
+
       return {
         id: booking.id,
         bookingNumber: booking.bookingNumber,
@@ -76,9 +109,17 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ leads })
+    return NextResponse.json({
+      leads,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    })
   } catch (error) {
     console.error("Error fetching leads:", error)
-    return NextResponse.json({ leads: [] })
+    return NextResponse.json({ leads: [], pagination: null })
   }
 }

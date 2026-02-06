@@ -1,8 +1,18 @@
-
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
+import crypto from "crypto"
+
+// Helper to generate SSO Token (HMAC Signed)
+function generateSSOToken(userId: string) {
+    const secret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
+    const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
+    const data = `${userId}:${expiresAt}`
+    const signature = crypto.createHmac("sha256", secret).update(data).digest("hex")
+    // Return Base64 encoded token
+    return Buffer.from(`${data}:${signature}`).toString("base64")
+}
 
 const registerSchema = z.object({
     email: z.string().email(),
@@ -39,6 +49,9 @@ const registerSchema = z.object({
  *                   example: "User registered successfully"
  *                 userId:
  *                   type: string
+ *                 redirectUrl:
+ *                   type: string
+ *                   description: URL to redirect the user for auto-login
  *       400:
  *         description: Invalid input or User already exists
  *       500:
@@ -72,8 +85,8 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10)
+        // Hash password with consistent salt rounds
+        const hashedPassword = await bcrypt.hash(password, 12)
 
         // Create user
         const newUser = await prisma.user.create({
@@ -88,8 +101,17 @@ export async function POST(request: NextRequest) {
             },
         })
 
+        // Generate SSO Token
+        const ssoToken = generateSSOToken(newUser.id)
+        const baseUrl = process.env.NEXTAUTH_URL || "https://jongrod.vercel.app"
+        const redirectUrl = `${baseUrl}/auth/sso?token=${ssoToken}`
+
         return NextResponse.json(
-            { message: "User registered successfully", userId: newUser.id },
+            {
+                message: "User registered successfully",
+                userId: newUser.id,
+                redirectUrl
+            },
             { status: 201 }
         )
     } catch (error) {

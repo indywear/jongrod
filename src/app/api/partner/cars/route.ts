@@ -1,24 +1,72 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
+import { z } from "zod"
+
+const createCarSchema = z.object({
+  brand: z.string().min(1, "Brand is required"),
+  model: z.string().min(1, "Model is required"),
+  year: z.union([z.string(), z.number()]),
+  licensePlate: z.string().min(1, "License plate is required"),
+  category: z.enum(["SEDAN", "SUV", "VAN", "PICKUP", "LUXURY", "COMPACT", "MOTORCYCLE"]),
+  transmission: z.enum(["AUTO", "MANUAL"]),
+  fuelType: z.enum(["PETROL", "DIESEL", "HYBRID", "EV"]),
+  seats: z.union([z.string(), z.number()]),
+  doors: z.union([z.string(), z.number()]),
+  features: z.array(z.string()).optional(),
+  images: z.array(z.string()).optional(),
+  pricePerDay: z.union([z.string(), z.number()]),
+})
 
 export async function GET(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const partnerId = searchParams.get("partnerId")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "20")
+    const skip = (page - 1) * limit
 
-    if (!partnerId) {
+    // Verify partner ownership
+    const targetPartnerId = partnerId || authResult.user.partnerId
+
+    if (!targetPartnerId) {
       return NextResponse.json(
         { error: "Partner ID is required" },
         { status: 400 }
       )
     }
 
-    const cars = await prisma.car.findMany({
-      where: { partnerId },
-      orderBy: { createdAt: "desc" },
-    })
+    // Verify the user has access to this partner
+    const ownershipResult = await verifyPartnerOwnership(request, targetPartnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
+    }
 
-    return NextResponse.json({ cars })
+    const [cars, total] = await Promise.all([
+      prisma.car.findMany({
+        where: { partnerId: targetPartnerId },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.car.count({ where: { partnerId: targetPartnerId } }),
+    ])
+
+    return NextResponse.json({
+      cars,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    })
   } catch (error) {
     console.error("Error fetching partner cars:", error)
     return NextResponse.json(
@@ -29,33 +77,45 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
-    const {
-      partnerId,
-      brand,
-      model,
-      year,
-      licensePlate,
-      category,
-      transmission,
-      fuelType,
-      seats,
-      doors,
-      features,
-      images,
-      pricePerDay,
-    } = body
 
-    if (!partnerId || !brand || !model || !licensePlate || !pricePerDay) {
+    // Validate input
+    const validation = createCarSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: validation.error.errors[0].message },
         { status: 400 }
       )
     }
 
+    // Use partner ID from the authenticated user or from body
+    const partnerId = body.partnerId || authResult.user.partnerId
+
+    if (!partnerId) {
+      return NextResponse.json(
+        { error: "Partner ID is required" },
+        { status: 400 }
+      )
+    }
+
+    // Verify the user has access to this partner
+    const ownershipResult = await verifyPartnerOwnership(request, partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
+    }
+
+    const data = validation.data
+
+    // Check for existing license plate
     const existingCar = await prisma.car.findUnique({
-      where: { licensePlate },
+      where: { licensePlate: data.licensePlate },
     })
 
     if (existingCar) {
@@ -68,18 +128,18 @@ export async function POST(request: NextRequest) {
     const car = await prisma.car.create({
       data: {
         partnerId,
-        brand,
-        model,
-        year: parseInt(year),
-        licensePlate,
-        category,
-        transmission,
-        fuelType,
-        seats: parseInt(seats),
-        doors: parseInt(doors),
-        features: features || [],
-        images: images || [],
-        pricePerDay: parseFloat(pricePerDay),
+        brand: data.brand,
+        model: data.model,
+        year: parseInt(String(data.year)),
+        licensePlate: data.licensePlate,
+        category: data.category,
+        transmission: data.transmission,
+        fuelType: data.fuelType,
+        seats: parseInt(String(data.seats)),
+        doors: parseInt(String(data.doors)),
+        features: data.features || [],
+        images: data.images || [],
+        pricePerDay: parseFloat(String(data.pricePerDay)),
       },
     })
 

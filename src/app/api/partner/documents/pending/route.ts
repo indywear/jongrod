@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const partnerId = searchParams.get("partnerId")
+    const partnerId = searchParams.get("partnerId") || authResult.user.partnerId
 
     if (!partnerId) {
       return NextResponse.json({ documents: [] })
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const bookings = await prisma.booking.findMany({

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -44,6 +45,7 @@ interface DocumentData {
 
 export default function PartnerDocApprovalPage() {
   const t = useTranslations()
+  const { user, isLoading: authLoading } = useAuth()
   const [documents, setDocuments] = useState<DocumentData[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
@@ -51,27 +53,14 @@ export default function PartnerDocApprovalPage() {
   const [rejectReason, setRejectReason] = useState("")
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
-  const [partnerId, setPartnerId] = useState<string | null>(null)
+
+  const partnerId = user?.partnerId
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setPartnerId(userData.partnerId || "av-carrent-official")
-      } catch {
-        setPartnerId("av-carrent-official")
-      }
-    } else {
-      setPartnerId("av-carrent-official")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (partnerId) {
+    if (!authLoading && partnerId) {
       fetchDocuments()
     }
-  }, [partnerId])
+  }, [authLoading, partnerId])
 
   const fetchDocuments = async () => {
     if (!partnerId) return
@@ -151,7 +140,7 @@ export default function PartnerDocApprovalPage() {
     return new Date(dateString).toLocaleDateString("th-TH")
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

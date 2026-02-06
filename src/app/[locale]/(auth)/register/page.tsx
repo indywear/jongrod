@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,22 +23,83 @@ export default function RegisterPage() {
     confirmPassword: "",
   })
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validatePhone = (phone: string): boolean => {
+    // Thai phone format: 08x-xxx-xxxx or 0xxxxxxxxx
+    const phoneRegex = /^0[689]\d{8}$/
+    const cleanPhone = phone.replace(/[-\s]/g, "")
+    return phoneRegex.test(cleanPhone)
+  }
+
+  const validatePassword = (password: string): { valid: boolean; errors: string[] } => {
+    const errors: string[] = []
+    if (password.length < 8) errors.push("ต้องมีอย่างน้อย 8 ตัวอักษร")
+    if (!/[A-Z]/.test(password)) errors.push("ต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว")
+    if (!/[a-z]/.test(password)) errors.push("ต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว")
+    if (!/[0-9]/.test(password)) errors.push("ต้องมีตัวเลขอย่างน้อย 1 ตัว")
+    return { valid: errors.length === 0, errors }
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value })
+    const { id, value } = e.target
+    setFormData({ ...formData, [id]: value })
     setError("")
+    // Clear field error when user types
+    if (fieldErrors[id]) {
+      setFieldErrors((prev) => ({ ...prev, [id]: "" }))
+    }
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    const errors = { ...fieldErrors }
+
+    if (id === "email" && value && !validateEmail(value)) {
+      errors.email = "รูปแบบอีเมลไม่ถูกต้อง"
+    }
+    if (id === "phone" && value && !validatePhone(value)) {
+      errors.phone = "รูปแบบเบอร์โทรไม่ถูกต้อง (เช่น 0812345678)"
+    }
+    if (id === "password" && value) {
+      const validation = validatePassword(value)
+      if (!validation.valid) {
+        errors.password = `รหัสผ่าน: ${validation.errors.join(", ")}`
+      }
+    }
+    if (id === "confirmPassword" && value && value !== formData.password) {
+      errors.confirmPassword = "รหัสผ่านไม่ตรงกัน"
+    }
+
+    setFieldErrors(errors)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("รหัสผ่านไม่ตรงกัน")
+    // Validate all fields
+    if (!validateEmail(formData.email)) {
+      setError("รูปแบบอีเมลไม่ถูกต้อง")
       return
     }
 
-    if (formData.password.length < 6) {
-      setError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร")
+    if (!validatePhone(formData.phone)) {
+      setError("รูปแบบเบอร์โทรไม่ถูกต้อง")
+      return
+    }
+
+    const passwordValidation = validatePassword(formData.password)
+    if (!passwordValidation.valid) {
+      setError(`รหัสผ่านไม่ผ่านเงื่อนไข: ${passwordValidation.errors.join(", ")}`)
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("รหัสผ่านไม่ตรงกัน")
       return
     }
 
@@ -112,48 +174,72 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="email">{t("email")}</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="name@example.com" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                required 
+                onBlur={handleBlur}
+                required
+                className={fieldErrors.email ? "border-red-500" : ""}
               />
+              {fieldErrors.email && (
+                <p className="text-xs text-red-500">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone">{t("phone")}</Label>
-              <Input 
-                id="phone" 
-                type="tel" 
-                placeholder="08x-xxx-xxxx" 
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="0812345678"
                 value={formData.phone}
                 onChange={handleChange}
-                required 
+                onBlur={handleBlur}
+                required
+                className={fieldErrors.phone ? "border-red-500" : ""}
               />
+              {fieldErrors.phone && (
+                <p className="text-xs text-red-500">{fieldErrors.phone}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">{t("password")}</Label>
-              <Input 
-                id="password" 
-                type="password" 
+              <Input
+                id="password"
+                type="password"
                 value={formData.password}
                 onChange={handleChange}
-                required 
+                onBlur={handleBlur}
+                required
+                className={fieldErrors.password ? "border-red-500" : ""}
               />
+              {fieldErrors.password ? (
+                <p className="text-xs text-red-500">{fieldErrors.password}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  อย่างน้อย 8 ตัว มีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-              <Input 
-                id="confirmPassword" 
-                type="password" 
+              <Input
+                id="confirmPassword"
+                type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                required 
+                onBlur={handleBlur}
+                required
+                className={fieldErrors.confirmPassword ? "border-red-500" : ""}
               />
+              {fieldErrors.confirmPassword && (
+                <p className="text-xs text-red-500">{fieldErrors.confirmPassword}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>

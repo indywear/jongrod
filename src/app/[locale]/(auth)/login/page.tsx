@@ -8,10 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const t = useTranslations("auth")
   const router = useRouter()
+  const { refreshUser } = useAuth()
   const [loginType, setLoginType] = useState<"email" | "phone">("email")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -21,6 +23,17 @@ export default function LoginPage() {
     password: "",
   })
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^0[689]\d{8}$/
+    const cleanPhone = phone.replace(/[-\s]/g, "")
+    return phoneRegex.test(cleanPhone)
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value })
     setError("")
@@ -29,6 +42,33 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    // Client-side validation
+    if (loginType === "email") {
+      if (!formData.email) {
+        setError("กรุณากรอกอีเมล")
+        return
+      }
+      if (!validateEmail(formData.email)) {
+        setError("รูปแบบอีเมลไม่ถูกต้อง")
+        return
+      }
+    } else {
+      if (!formData.phone) {
+        setError("กรุณากรอกเบอร์โทร")
+        return
+      }
+      if (!validatePhone(formData.phone)) {
+        setError("รูปแบบเบอร์โทรไม่ถูกต้อง (เช่น 0812345678)")
+        return
+      }
+    }
+
+    if (!formData.password) {
+      setError("กรุณากรอกรหัสผ่าน")
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -49,7 +89,8 @@ export default function LoginPage() {
         return
       }
 
-      localStorage.setItem("user", JSON.stringify(data.user))
+      // Refresh auth context to get user from session cookie
+      await refreshUser()
 
       if (data.user.role === "PLATFORM_OWNER") {
         router.push("/admin")

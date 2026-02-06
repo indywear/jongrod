@@ -1,7 +1,14 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/auth"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const today = new Date()
     today.setHours(0, 0, 0, 0)

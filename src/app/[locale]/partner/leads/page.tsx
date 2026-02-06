@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -64,13 +65,13 @@ interface Lead {
 
 export default function PartnerLeadsPage() {
   const t = useTranslations()
+  const { user, isLoading: authLoading } = useAuth()
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
-  const [partnerId, setPartnerId] = useState<string | null>(null)
-  
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     leadId: string
@@ -98,25 +99,13 @@ export default function PartnerLeadsPage() {
   const [editOriginalReturn, setEditOriginalReturn] = useState("")
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setPartnerId(userData.partnerId || "av-carrent-official")
-      } catch {
-        setPartnerId("av-carrent-official")
-      }
-    } else {
-      setPartnerId("av-carrent-official")
-    }
-  }, [])
+  const partnerId = user?.partnerId
 
   useEffect(() => {
-    if (partnerId) {
+    if (!authLoading && partnerId) {
       fetchLeads()
     }
-  }, [statusFilter, partnerId])
+  }, [statusFilter, authLoading, partnerId])
 
   const fetchLeads = async () => {
     if (!partnerId) return
@@ -386,7 +375,7 @@ export default function PartnerLeadsPage() {
 
       <Card>
         <CardContent className="p-0">
-          {loading ? (
+          {authLoading || loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>

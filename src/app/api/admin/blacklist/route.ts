@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/auth"
+import { z } from "zod"
 
-export async function GET() {
+const createBlacklistSchema = z.object({
+  documentNumber: z.string().min(1, "Document number is required"),
+  fullName: z.string().min(1, "Full name is required"),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  reason: z.string().min(1, "Reason is required"),
+})
+
+export async function GET(request: NextRequest) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const blacklist = await prisma.blacklist.findMany({
       orderBy: { createdAt: "desc" },
@@ -23,17 +39,27 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
-    const { documentNumber, fullName, phone, email, reason, addedById } = body
 
-    if (!documentNumber || !fullName || !reason || !addedById) {
+    // Validate input
+    const validation = createBlacklistSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: validation.error.errors[0].message },
         { status: 400 }
       )
     }
 
+    const { documentNumber, fullName, phone, email, reason } = validation.data
+
+    // Check if already exists
     const existing = await prisma.blacklist.findUnique({
       where: { documentNumber },
     })
@@ -45,6 +71,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Use authenticated user's ID
     const blacklistEntry = await prisma.blacklist.create({
       data: {
         documentNumber,
@@ -52,7 +79,7 @@ export async function POST(request: NextRequest) {
         phone,
         email,
         reason,
-        addedById,
+        addedById: authResult.user.id,
       },
     })
 
@@ -67,14 +94,31 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get("id")
+    const body = await request.json()
+    const { id } = body
 
     if (!id) {
       return NextResponse.json(
         { error: "ID is required" },
         { status: 400 }
+      )
+    }
+
+    const entry = await prisma.blacklist.findUnique({
+      where: { id },
+    })
+
+    if (!entry) {
+      return NextResponse.json(
+        { error: "Blacklist entry not found" },
+        { status: 404 }
       )
     }
 

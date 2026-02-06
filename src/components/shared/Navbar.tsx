@@ -18,35 +18,14 @@ import {
 import { Menu, Globe, User, LogOut, Settings, Car } from "lucide-react"
 import { useRouter } from "@/i18n/navigation"
 import { useLocale } from "next-intl"
-import { useEffect, useState } from "react"
-
-interface UserData {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  role: string
-}
+import { useAuth } from "@/contexts/AuthContext"
 
 export function Navbar() {
   const t = useTranslations()
   const pathname = usePathname()
   const router = useRouter()
   const locale = useLocale()
-  const [user, setUser] = useState<UserData | null>(null)
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setTimeout(() => {
-        try {
-          setUser(JSON.parse(storedUser))
-        } catch {
-          setUser(null)
-        }
-      }, 0)
-    }
-  }, [])
+  const { user, logout, isLoading } = useAuth()
 
   const navLinks = [
     { href: "/", label: t("nav.home") },
@@ -59,9 +38,8 @@ export function Navbar() {
     router.replace(pathname, { locale: newLocale })
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    setUser(null)
+  const handleLogout = async () => {
+    await logout()
     router.push("/")
   }
 

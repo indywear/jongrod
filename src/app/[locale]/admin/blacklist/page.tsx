@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -46,12 +47,12 @@ interface UserData {
 
 export default function BlacklistPage() {
   const t = useTranslations("admin")
+  const { user } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [blacklist, setBlacklist] = useState<BlacklistEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [user, setUser] = useState<UserData | null>(null)
-  
+
   const [formData, setFormData] = useState({
     documentNumber: "",
     fullName: "",
@@ -61,14 +62,6 @@ export default function BlacklistPage() {
   })
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch {
-        setUser(null)
-      }
-    }
     fetchBlacklist()
   }, [])
 

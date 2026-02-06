@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { supabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/auth"
 
-export async function GET() {
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+export async function GET(request: NextRequest) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const banners = await prisma.banner.findMany({
       orderBy: [
@@ -22,6 +32,12 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const formData = await request.formData()
     const title = formData.get("title") as string
@@ -40,8 +56,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate image type
+    if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
+      return NextResponse.json(
+        { error: "Invalid image type. Allowed: JPEG, PNG, WebP, GIF" },
+        { status: 400 }
+      )
+    }
+
+    // Validate file size
+    if (image.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "Image size must be less than 5MB" },
+        { status: 400 }
+      )
+    }
+
+    // Validate position
+    const validPositions = ["HOMEPAGE_HERO", "HOMEPAGE_MIDDLE", "LISTING_TOP", "POPUP"]
+    if (!validPositions.includes(position)) {
+      return NextResponse.json(
+        { error: "Invalid position" },
+        { status: 400 }
+      )
+    }
+
     const buffer = Buffer.from(await image.arrayBuffer())
-    const path = `banners/${Date.now()}_${image.name}`
+    // Sanitize filename
+    const sanitizedFilename = image.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+    const path = `banners/${Date.now()}_${sanitizedFilename}`
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("banners")

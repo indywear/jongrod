@@ -39,6 +39,9 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const category = searchParams.get("category")
+        const page = parseInt(searchParams.get("page") || "1")
+        const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100) // Max 100 per page
+        const skip = (page - 1) * limit
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const where: any = {
@@ -50,18 +53,23 @@ export async function GET(request: NextRequest) {
             where.category = category
         }
 
-        const cars = await prisma.car.findMany({
-            where,
-            orderBy: { createdAt: "desc" },
-            include: {
-                partner: {
-                    select: {
-                        name: true,
-                        logoUrl: true
+        const [cars, total] = await Promise.all([
+            prisma.car.findMany({
+                where,
+                orderBy: { createdAt: "desc" },
+                include: {
+                    partner: {
+                        select: {
+                            name: true,
+                            logoUrl: true
+                        }
                     }
-                }
-            }
-        })
+                },
+                skip,
+                take: limit,
+            }),
+            prisma.car.count({ where }),
+        ])
 
         const carsWithUrls = cars.map((car) => ({
             ...car,
@@ -80,7 +88,15 @@ export async function GET(request: NextRequest) {
             },
         }))
 
-        return NextResponse.json({ cars: carsWithUrls })
+        return NextResponse.json({
+            cars: carsWithUrls,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        })
     } catch (error) {
         console.error("Error fetching cars:", error)
         return NextResponse.json(

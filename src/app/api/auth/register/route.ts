@@ -1,60 +1,113 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { createSession, checkRateLimit } from "@/lib/auth"
 import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+// Validation schema with strong password requirements
+const registerSchema = z.object({
+  email: z.string().email("อีเมลไม่ถูกต้อง").optional(),
+  phone: z.string()
+    .min(9, "เบอร์โทรต้องมีอย่างน้อย 9 หลัก")
+    .max(15, "เบอร์โทรไม่ถูกต้อง")
+    .regex(/^[0-9+\-\s]+$/, "เบอร์โทรไม่ถูกต้อง")
+    .optional(),
+  password: z.string()
+    .min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
+    .regex(/[A-Z]/, "รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว")
+    .regex(/[a-z]/, "รหัสผ่านต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว")
+    .regex(/[0-9]/, "รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว"),
+  firstName: z.string()
+    .min(1, "กรุณากรอกชื่อ")
+    .max(100, "ชื่อยาวเกินไป")
+    .regex(/^[a-zA-Zก-๙\s]+$/, "ชื่อไม่ถูกต้อง"),
+  lastName: z.string()
+    .min(1, "กรุณากรอกนามสกุล")
+    .max(100, "นามสกุลยาวเกินไป")
+    .regex(/^[a-zA-Zก-๙\s]+$/, "นามสกุลไม่ถูกต้อง"),
+}).refine(data => data.email || data.phone, {
+  message: "กรุณากรอกอีเมลหรือเบอร์โทร",
+})
+
+// Sanitize input to prevent XSS
+function sanitize(input: string): string {
+  return input
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .trim()
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const {
-      email,
-      phone,
-      password,
-      firstName,
-      lastName,
-      role,
-    } = body
+    // Rate limiting by IP
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const rateLimit = checkRateLimit(`register:${ip}`, 3, 60000) // 3 attempts per minute
 
-    if ((!email && !phone) || !password || !firstName || !lastName) {
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "Email or phone, password, first name, and last name are required" },
+        { error: `กรุณารอ ${rateLimit.retryAfter} วินาทีก่อนลองใหม่` },
+        { status: 429 }
+      )
+    }
+
+    const body = await request.json()
+
+    // Validate input
+    const validation = registerSchema.safeParse(body)
+    if (!validation.success) {
+      const errors = validation.error.errors.map(e => e.message)
+      return NextResponse.json(
+        { error: errors[0] },
         { status: 400 }
       )
     }
 
+    const { email, phone, password, firstName, lastName } = validation.data
+
+    // Sanitize text inputs
+    const sanitizedFirstName = sanitize(firstName)
+    const sanitizedLastName = sanitize(lastName)
+
+    // Check for existing email
     if (email) {
       const existingEmail = await prisma.user.findUnique({
         where: { email },
       })
       if (existingEmail) {
         return NextResponse.json(
-          { error: "Email already registered" },
+          { error: "อีเมลนี้ถูกใช้งานแล้ว" },
           { status: 409 }
         )
       }
     }
 
+    // Check for existing phone
     if (phone) {
       const existingPhone = await prisma.user.findUnique({
         where: { phone },
       })
       if (existingPhone) {
         return NextResponse.json(
-          { error: "Phone number already registered" },
+          { error: "เบอร์โทรนี้ถูกใช้งานแล้ว" },
           { status: 409 }
         )
       }
     }
 
+    // Hash password with consistent salt rounds
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Create user
     const user = await prisma.user.create({
       data: {
         email,
         phone,
         password: hashedPassword,
-        firstName,
-        lastName,
-        role: role || "CUSTOMER",
+        firstName: sanitizedFirstName,
+        lastName: sanitizedLastName,
+        role: "CUSTOMER", // Always create as customer - admin creates other roles
       },
       select: {
         id: true,
@@ -67,11 +120,15 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ user }, { status: 201 })
+    // Create session and set cookie
+    const response = NextResponse.json({ user }, { status: 201 })
+    await createSession(user.id, response)
+
+    return response
   } catch (error) {
     console.error("Error registering user:", error)
     return NextResponse.json(
-      { error: "Failed to register user" },
+      { error: "เกิดข้อผิดพลาดในการสมัครสมาชิก กรุณาลองใหม่" },
       { status: 500 }
     )
   }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useRef } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,6 +41,7 @@ export default function EditCarPage({ params }: Props) {
   const { id } = use(params)
   const t = useTranslations()
   const router = useRouter()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
   const [error, setError] = useState("")
@@ -47,7 +49,6 @@ export default function EditCarPage({ params }: Props) {
   const [carImages, setCarImages] = useState<string[]>([])
   const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
-  const [partnerId, setPartnerId] = useState<string>("")
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     brand: "",
@@ -63,16 +64,9 @@ export default function EditCarPage({ params }: Props) {
     rentalStatus: "AVAILABLE",
   })
 
+  const partnerId = user?.partnerId || ""
+
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setPartnerId(userData.partnerId || "av-carrent-official")
-      } catch {
-        setPartnerId("av-carrent-official")
-      }
-    }
     fetchCar()
   }, [id])
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { Car, ClipboardList, TrendingUp, Plus, Eye, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface DashboardStats {
   totalCars: number
@@ -23,6 +24,7 @@ interface RecentLead {
 
 export default function PartnerDashboard() {
   const t = useTranslations("partner")
+  const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<DashboardStats>({
     totalCars: 0,
@@ -33,20 +35,14 @@ export default function PartnerDashboard() {
   const [recentLeads, setRecentLeads] = useState<RecentLead[]>([])
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if (!authLoading && user?.partnerId) {
+      fetchDashboardData(user.partnerId)
+    }
+  }, [authLoading, user?.partnerId])
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (partnerId: string) => {
     setLoading(true)
     try {
-      const storedUser = localStorage.getItem("user")
-      let partnerId = "av-carrent-official"
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser)
-          partnerId = userData.partnerId || "av-carrent-official"
-        } catch {}
-      }
 
       const [carsResponse, leadsResponse] = await Promise.all([
         fetch(`/api/partner/cars?partnerId=${partnerId}`),
@@ -131,7 +127,7 @@ export default function PartnerDashboard() {
     },
   ]
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

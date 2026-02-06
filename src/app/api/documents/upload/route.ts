@@ -2,11 +2,30 @@ import { NextRequest, NextResponse } from "next/server"
 import { uploadFile } from "@/lib/storage"
 import { prisma } from "@/lib/prisma"
 import { sendBookingNotification } from "@/lib/telegram"
+import { getSession } from "@/lib/auth"
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"]
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
+function validateFile(file: File): { valid: boolean; error?: string } {
+  // Check MIME type
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { valid: false, error: "ไฟล์ต้องเป็น JPEG, PNG หรือ WebP เท่านั้น" }
+  }
+  // Check file size
+  if (file.size > MAX_FILE_SIZE) {
+    return { valid: false, error: "ขนาดไฟล์ต้องไม่เกิน 10MB" }
+  }
+  return { valid: true }
+}
 
 export async function POST(request: NextRequest) {
+  // Check if user is logged in
+  const session = await getSession(request)
+
   try {
     const formData = await request.formData()
-    
+
     const bookingId = formData.get("bookingId") as string
     const customerName = formData.get("customerName") as string
     const idCardFront = formData.get("idCardFront") as File | null
@@ -27,6 +46,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate file types and sizes
+    const idCardFrontValidation = validateFile(idCardFront)
+    if (!idCardFrontValidation.valid) {
+      return NextResponse.json(
+        { error: `บัตรประชาชนด้านหน้า: ${idCardFrontValidation.error}` },
+        { status: 400 }
+      )
+    }
+
+    const driverLicenseValidation = validateFile(driverLicense)
+    if (!driverLicenseValidation.valid) {
+      return NextResponse.json(
+        { error: `ใบขับขี่: ${driverLicenseValidation.error}` },
+        { status: 400 }
+      )
+    }
+
+    if (idCardBack) {
+      const idCardBackValidation = validateFile(idCardBack)
+      if (!idCardBackValidation.valid) {
+        return NextResponse.json(
+          { error: `บัตรประชาชนด้านหลัง: ${idCardBackValidation.error}` },
+          { status: 400 }
+        )
+      }
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -42,6 +88,24 @@ export async function POST(request: NextRequest) {
         { error: "Booking not found" },
         { status: 404 }
       )
+    }
+
+    // Verify booking ownership - if user is logged in, check they own this booking
+    // If booking has a userId, only that user can upload documents
+    // If booking doesn't have userId (guest booking), allow upload based on bookingId
+    if (booking.userId) {
+      if (!session) {
+        return NextResponse.json(
+          { error: "กรุณาเข้าสู่ระบบเพื่ออัปโหลดเอกสาร" },
+          { status: 401 }
+        )
+      }
+      if (booking.userId !== session.id) {
+        return NextResponse.json(
+          { error: "คุณไม่มีสิทธิ์อัปโหลดเอกสารสำหรับการจองนี้" },
+          { status: 403 }
+        )
+      }
     }
 
     const uploadedUrls: Record<string, string> = {}
@@ -97,6 +161,39 @@ export async function POST(request: NextRequest) {
       )
     }
     uploadedUrls.driverLicense = driverLicenseResult.url!
+
+    // Save document records to database
+    const userId = session?.id || booking.userId
+    if (userId) {
+      const documentRecords = []
+
+      documentRecords.push({
+        userId,
+        type: "ID_CARD" as const,
+        url: uploadedUrls.idCardFront,
+        status: "PENDING" as const,
+      })
+
+      if (uploadedUrls.idCardBack) {
+        documentRecords.push({
+          userId,
+          type: "ID_CARD" as const,
+          url: uploadedUrls.idCardBack,
+          status: "PENDING" as const,
+        })
+      }
+
+      documentRecords.push({
+        userId,
+        type: "DRIVER_LICENSE" as const,
+        url: uploadedUrls.driverLicense,
+        status: "PENDING" as const,
+      })
+
+      await prisma.document.createMany({
+        data: documentRecords,
+      })
+    }
 
     if (booking.partner.telegramChatId) {
       sendBookingNotification(booking.partner.telegramChatId, {

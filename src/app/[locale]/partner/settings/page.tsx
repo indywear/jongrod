@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -44,11 +45,13 @@ interface OperatingHours {
 
 export default function SettingsPage() {
   const t = useTranslations()
+  const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [partnerId, setPartnerId] = useState<string | null>(null)
   const [newLocation, setNewLocation] = useState("")
-  
+
+  const partnerId = user?.partnerId
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -81,25 +84,10 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        const pId = userData.partnerId || "av-carrent-official"
-        setPartnerId(pId)
-      } catch {
-        setPartnerId("av-carrent-official")
-      }
-    } else {
-      setPartnerId("av-carrent-official")
-    }
-  }, [])
-
-  useEffect(() => {
-    if (partnerId) {
+    if (!authLoading && partnerId) {
       fetchPartnerSettings()
     }
-  }, [partnerId])
+  }, [authLoading, partnerId])
 
   const fetchPartnerSettings = async () => {
     setLoading(true)
@@ -180,7 +168,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

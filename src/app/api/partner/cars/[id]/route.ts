@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { id } = await params
 
@@ -17,6 +24,12 @@ export async function GET(
         { error: "Car not found" },
         { status: 404 }
       )
+    }
+
+    // Verify the user has access to this car's partner
+    const ownershipResult = await verifyPartnerOwnership(request, car.partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     return NextResponse.json({ car })
@@ -33,6 +46,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
@@ -46,6 +65,31 @@ export async function PATCH(
         { error: "Car not found" },
         { status: 404 }
       )
+    }
+
+    // Verify the user has access to this car's partner
+    const ownershipResult = await verifyPartnerOwnership(request, car.partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
+    }
+
+    // Validate category, transmission, fuelType, rentalStatus if provided
+    const validCategories = ["SEDAN", "SUV", "VAN", "PICKUP", "LUXURY", "COMPACT", "MOTORCYCLE"]
+    const validTransmissions = ["AUTO", "MANUAL"]
+    const validFuelTypes = ["PETROL", "DIESEL", "HYBRID", "EV"]
+    const validRentalStatuses = ["AVAILABLE", "RENTED", "MAINTENANCE"]
+
+    if (body.category && !validCategories.includes(body.category)) {
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 })
+    }
+    if (body.transmission && !validTransmissions.includes(body.transmission)) {
+      return NextResponse.json({ error: "Invalid transmission" }, { status: 400 })
+    }
+    if (body.fuelType && !validFuelTypes.includes(body.fuelType)) {
+      return NextResponse.json({ error: "Invalid fuel type" }, { status: 400 })
+    }
+    if (body.rentalStatus && !validRentalStatuses.includes(body.rentalStatus)) {
+      return NextResponse.json({ error: "Invalid rental status" }, { status: 400 })
     }
 
     const updatedCar = await prisma.car.update({
@@ -81,6 +125,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { id } = await params
 
@@ -93,6 +143,12 @@ export async function DELETE(
         { error: "Car not found" },
         { status: 404 }
       )
+    }
+
+    // Verify the user has access to this car's partner
+    const ownershipResult = await verifyPartnerOwnership(request, car.partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     await prisma.car.delete({

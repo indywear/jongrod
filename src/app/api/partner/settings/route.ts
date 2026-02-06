@@ -1,16 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const partnerId = searchParams.get("partnerId")
+    const partnerId = searchParams.get("partnerId") || authResult.user.partnerId
 
     if (!partnerId) {
       return NextResponse.json(
         { error: "Partner ID is required" },
         { status: 400 }
       )
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const partner = await prisma.partner.findUnique({
@@ -46,6 +59,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
     const {
@@ -59,15 +78,23 @@ export async function PATCH(request: NextRequest) {
       pickupLocations,
     } = body
 
-    if (!partnerId) {
+    const targetPartnerId = partnerId || authResult.user.partnerId
+
+    if (!targetPartnerId) {
       return NextResponse.json(
         { error: "Partner ID is required" },
         { status: 400 }
       )
     }
 
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, targetPartnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
+    }
+
     const existingPartner = await prisma.partner.findUnique({
-      where: { id: partnerId },
+      where: { id: targetPartnerId },
     })
 
     if (!existingPartner) {
@@ -78,7 +105,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updateData: Record<string, unknown> = {}
-    
+
     if (name !== undefined) updateData.name = name
     if (phone !== undefined) updateData.phone = phone
     if (contactEmail !== undefined) updateData.contactEmail = contactEmail
@@ -88,7 +115,7 @@ export async function PATCH(request: NextRequest) {
     if (pickupLocations !== undefined) updateData.pickupLocations = Array.isArray(pickupLocations) ? pickupLocations : []
 
     const updatedPartner = await prisma.partner.update({
-      where: { id: partnerId },
+      where: { id: targetPartnerId },
       data: updateData,
     })
 
@@ -96,7 +123,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error("Error updating partner settings:", error)
     return NextResponse.json(
-      { error: "Failed to update partner settings", details: String(error) },
+      { error: "Failed to update partner settings" },
       { status: 500 }
     )
   }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -53,33 +54,23 @@ interface UserData {
 
 export default function MyBookingsPage() {
   const t = useTranslations()
+  const { user, isLoading: authLoading } = useAuth()
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [bookings, setBookings] = useState<BookingData[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
-  const [user, setUser] = useState<UserData | null>(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setUser(userData)
-      } catch {
-        setUser(null)
+    if (!authLoading) {
+      if (user) {
+        fetchBookings()
+      } else {
+        setLoading(false)
       }
     }
-  }, [])
-
-  useEffect(() => {
-    if (user) {
-      fetchBookings()
-    } else {
-      setLoading(false)
-    }
-  }, [user, statusFilter])
+  }, [authLoading, user, statusFilter])
 
   const fetchBookings = async () => {
     if (!user) return
@@ -143,7 +134,7 @@ export default function MyBookingsPage() {
     return <Badge className={config.className}>{config.label}</Badge>
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center justify-center py-12">

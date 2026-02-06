@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/auth"
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require admin role
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
-    const { status, rejectionReason, reviewedById } = body
+    const { status, rejectionReason } = body
 
     if (!status || !["APPROVED", "REJECTED"].includes(status)) {
       return NextResponse.json(
@@ -35,12 +42,13 @@ export async function PATCH(
       )
     }
 
+    // Use authenticated user's ID as reviewer
     const updatedDocument = await prisma.document.update({
       where: { id },
       data: {
         status,
         rejectionReason: status === "REJECTED" ? rejectionReason : null,
-        reviewedById,
+        reviewedById: authResult.user.id,
       },
     })
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 import { LeadStatus } from "@prisma/client"
 
 const VALID_TRANSITIONS: Record<LeadStatus, LeadStatus[]> = {
@@ -16,14 +17,29 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
-    const { status, userId, note } = body
+    const { status, note } = body
 
     if (!status) {
       return NextResponse.json(
         { error: "Status is required" },
+        { status: 400 }
+      )
+    }
+
+    // Validate status value
+    const validStatuses = ["NEW", "CLAIMED", "PICKUP", "ACTIVE", "RETURN", "COMPLETED", "CANCELLED"]
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: "Invalid status value" },
         { status: 400 }
       )
     }
@@ -40,6 +56,12 @@ export async function PATCH(
       )
     }
 
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, booking.partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
+    }
+
     const validNextStatuses = VALID_TRANSITIONS[booking.leadStatus]
     if (!validNextStatuses.includes(status)) {
       return NextResponse.json(
@@ -49,6 +71,7 @@ export async function PATCH(
     }
 
     const updateData: Record<string, unknown> = { leadStatus: status }
+    const userId = authResult.user.id
 
     if (status === "CLAIMED") {
       updateData.claimedById = userId
@@ -60,13 +83,18 @@ export async function PATCH(
       updateData.returnConfirmedById = userId
       updateData.returnConfirmedAt = new Date()
     } else if (status === "COMPLETED") {
+      // Calculate commission correctly using toNumber()
+      const bookingAmount = booking.totalPrice.toNumber()
+      const commissionRate = booking.partner.commissionRate.toNumber()
+      const commissionAmount = bookingAmount * (commissionRate / 100)
+
       await prisma.commissionLog.create({
         data: {
           partnerId: booking.partnerId,
           bookingId: booking.id,
-          bookingAmount: booking.totalPrice,
-          commissionRate: booking.partner.commissionRate,
-          commissionAmount: booking.totalPrice.toNumber() * (booking.partner.commissionRate.toNumber() / 100),
+          bookingAmount: bookingAmount,
+          commissionRate: commissionRate,
+          commissionAmount: commissionAmount,
         },
       })
     } else if (status === "CANCELLED" && note) {

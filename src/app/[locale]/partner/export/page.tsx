@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,25 +18,13 @@ import { Download, FileSpreadsheet, Calendar, Loader2 } from "lucide-react"
 
 export default function ExportPage() {
   const t = useTranslations()
+  const { user } = useAuth()
   const [exportType, setExportType] = useState("bookings")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
   const [isExporting, setIsExporting] = useState(false)
-  const [partnerId, setPartnerId] = useState<string | null>(null)
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setPartnerId(userData.partnerId || "av-carrent-official")
-      } catch {
-        setPartnerId("av-carrent-official")
-      }
-    } else {
-      setPartnerId("av-carrent-official")
-    }
-  }, [])
+  const partnerId = user?.partnerId
 
   const handleExport = async () => {
     if (!partnerId) return

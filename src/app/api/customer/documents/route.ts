@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireCustomer, verifyUserOwnership } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
+  // Require customer role
+  const authResult = await requireCustomer(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId")
+    const userId = searchParams.get("userId") || authResult.user.id
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      )
+    // Verify user ownership
+    const ownershipResult = await verifyUserOwnership(request, userId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const documents = await prisma.document.findMany({

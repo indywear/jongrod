@@ -1,13 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
+import { z } from "zod"
+
+const addTeamMemberSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  role: z.string().min(1, "Role is required"),
+})
 
 export async function GET(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const partnerId = searchParams.get("partnerId")
+    const partnerId = searchParams.get("partnerId") || authResult.user.partnerId
 
     if (!partnerId) {
       return NextResponse.json({ team: [] })
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const partnerAdmins = await prisma.partnerAdmin.findMany({
@@ -45,16 +64,40 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
-    const { partnerId, email, role } = body
 
-    if (!partnerId || !email || !role) {
+    // Validate input
+    const validation = addTeamMemberSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: validation.error.errors[0].message },
         { status: 400 }
       )
     }
+
+    const partnerId = body.partnerId || authResult.user.partnerId
+
+    if (!partnerId) {
+      return NextResponse.json(
+        { error: "Partner ID is required" },
+        { status: 400 }
+      )
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
+    }
+
+    const { email, role } = validation.data
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -92,6 +135,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Update user role to PARTNER_ADMIN if not already
+    if (user.role !== "PARTNER_ADMIN" && user.role !== "PLATFORM_OWNER") {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: "PARTNER_ADMIN" },
+      })
+    }
+
     return NextResponse.json({ partnerAdmin })
   } catch (error) {
     console.error("Error adding team member:", error)
@@ -103,6 +154,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
     const { id, canClaimLeads } = body
@@ -112,6 +169,24 @@ export async function PATCH(request: NextRequest) {
         { error: "ID and canClaimLeads are required" },
         { status: 400 }
       )
+    }
+
+    // Get the partner admin to verify ownership
+    const existingAdmin = await prisma.partnerAdmin.findUnique({
+      where: { id },
+    })
+
+    if (!existingAdmin) {
+      return NextResponse.json(
+        { error: "Team member not found" },
+        { status: 404 }
+      )
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, existingAdmin.partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     const partnerAdmin = await prisma.partnerAdmin.update({
@@ -130,15 +205,39 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // Require partner role
+  const authResult = await requirePartner(request)
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get("id")
+    const body = await request.json()
+    const { id } = body
 
     if (!id) {
       return NextResponse.json(
         { error: "ID is required" },
         { status: 400 }
       )
+    }
+
+    // Get the partner admin to verify ownership
+    const existingAdmin = await prisma.partnerAdmin.findUnique({
+      where: { id },
+    })
+
+    if (!existingAdmin) {
+      return NextResponse.json(
+        { error: "Team member not found" },
+        { status: 404 }
+      )
+    }
+
+    // Verify partner ownership
+    const ownershipResult = await verifyPartnerOwnership(request, existingAdmin.partnerId)
+    if (ownershipResult instanceof NextResponse) {
+      return ownershipResult
     }
 
     await prisma.partnerAdmin.delete({
