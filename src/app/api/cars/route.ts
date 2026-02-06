@@ -80,6 +80,8 @@ export async function GET(request: NextRequest) {
                         const match = img.match(/\/uploads\/.*$/)
                         if (match) return match[0]
                     }
+                    // If path already starts with /uploads/, use as-is
+                    if (img.startsWith("/uploads/")) return img
                     if (img.startsWith("http")) return img
                     if (img.startsWith("uploads/")) return `/${img}`
                     return getPublicUrl("car-images", img)
