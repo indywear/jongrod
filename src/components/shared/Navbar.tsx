@@ -19,6 +19,7 @@ import { Menu, Globe, User, LogOut, Settings, Car } from "lucide-react"
 import { useRouter } from "@/i18n/navigation"
 import { useLocale } from "next-intl"
 import { useAuth } from "@/contexts/AuthContext"
+import Image from "next/image"
 
 export function Navbar() {
   const t = useTranslations()
@@ -54,7 +55,14 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold text-primary">Jongrod</span>
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={120}
+            height={40}
+            className="h-10 w-auto"
+            priority
+          />
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">

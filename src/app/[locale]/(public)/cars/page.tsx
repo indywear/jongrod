@@ -276,6 +276,7 @@ export default function CarsPage() {
                           alt={`${car.brand} ${car.model}`}
                           fill
                           className="object-cover"
+                          unoptimized
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
                           }}

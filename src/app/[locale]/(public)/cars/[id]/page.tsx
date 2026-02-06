@@ -112,6 +112,7 @@ export default function CarDetailPage({
                 alt={`${car.brand} ${car.model}`}
                 fill
                 className="object-cover"
+                unoptimized
                 onError={(e) => {
                   e.currentTarget.style.display = "none"
                 }}
@@ -138,6 +139,7 @@ export default function CarDetailPage({
                     alt={`${car.brand} ${car.model} ${i + 1}`}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </div>
               ))}
