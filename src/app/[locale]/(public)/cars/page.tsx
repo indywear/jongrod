@@ -61,6 +61,7 @@ export default function CarsPage() {
   const [sortBy, setSortBy] = useState<string>("newest")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState<Pagination | null>(null)
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
 
   useEffect(() => {
     fetchCars()
@@ -81,6 +82,9 @@ export default function CarsPage() {
       const data = await response.json()
       setCars(data.cars || [])
       setPagination(data.pagination || null)
+      if (data.categories) {
+        setAvailableCategories(data.categories)
+      }
     } catch (error) {
       console.error("Error fetching cars:", error)
       setCars([])
@@ -89,15 +93,22 @@ export default function CarsPage() {
     }
   }
 
-  const categories = [
-    { value: "SEDAN", label: t("cars.category.SEDAN") },
-    { value: "SUV", label: t("cars.category.SUV") },
-    { value: "VAN", label: t("cars.category.VAN") },
-    { value: "PICKUP", label: t("cars.category.PICKUP") },
-    { value: "LUXURY", label: t("cars.category.LUXURY") },
-    { value: "COMPACT", label: t("cars.category.COMPACT") },
-    { value: "MOTORCYCLE", label: t("cars.category.MOTORCYCLE") },
-  ]
+  // All possible category labels for translation
+  const categoryLabels: Record<string, string> = {
+    SEDAN: t("cars.category.SEDAN"),
+    SUV: t("cars.category.SUV"),
+    VAN: t("cars.category.VAN"),
+    PICKUP: t("cars.category.PICKUP"),
+    LUXURY: t("cars.category.LUXURY"),
+    COMPACT: t("cars.category.COMPACT"),
+    MOTORCYCLE: t("cars.category.MOTORCYCLE"),
+  }
+
+  // Only show categories that have cars
+  const categories = availableCategories.map(cat => ({
+    value: cat,
+    label: categoryLabels[cat] || cat,
+  }))
 
   const transmissions = [
     { value: "AUTO", label: t("cars.transmission.AUTO") },
@@ -118,8 +129,7 @@ export default function CarsPage() {
   ]
 
   const getCategoryLabel = (cat: string) => {
-    const found = categories.find(c => c.value === cat)
-    return found ? found.label : cat
+    return categoryLabels[cat] || cat
   }
 
   const handleFilterChange = () => {

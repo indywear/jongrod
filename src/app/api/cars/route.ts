@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
             where.category = category
         }
 
-        const [cars, total] = await Promise.all([
+        const [cars, total, availableCategories] = await Promise.all([
             prisma.car.findMany({
                 where,
                 orderBy: { createdAt: "desc" },
@@ -69,6 +69,14 @@ export async function GET(request: NextRequest) {
                 take: limit,
             }),
             prisma.car.count({ where }),
+            prisma.car.groupBy({
+                by: ['category'],
+                where: {
+                    rentalStatus: "AVAILABLE",
+                    approvalStatus: "APPROVED"
+                },
+                _count: { category: true }
+            }),
         ])
 
         const carsWithUrls = cars.map((car) => ({
@@ -105,6 +113,7 @@ export async function GET(request: NextRequest) {
                 total,
                 totalPages: Math.ceil(total / limit),
             },
+            categories: availableCategories.map(c => c.category),
         })
     } catch (error) {
         console.error("Error fetching cars:", error)
