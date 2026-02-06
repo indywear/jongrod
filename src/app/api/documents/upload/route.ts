@@ -94,13 +94,13 @@ export async function POST(request: NextRequest) {
     // If booking has a userId, only that user can upload documents
     // If booking doesn't have userId (guest booking), allow upload based on bookingId
     if (booking.userId) {
-      if (!session) {
+      if (!session.user) {
         return NextResponse.json(
           { error: "กรุณาเข้าสู่ระบบเพื่ออัปโหลดเอกสาร" },
           { status: 401 }
         )
       }
-      if (booking.userId !== session.id) {
+      if (booking.userId !== session.user.id) {
         return NextResponse.json(
           { error: "คุณไม่มีสิทธิ์อัปโหลดเอกสารสำหรับการจองนี้" },
           { status: 403 }
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     uploadedUrls.driverLicense = driverLicenseResult.url!
 
     // Save document records to database
-    const userId = session?.id || booking.userId
+    const userId = session?.user?.id || booking.userId
     if (userId) {
       const documentRecords = []
 
