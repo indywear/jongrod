@@ -75,6 +75,11 @@ export async function GET(request: NextRequest) {
             ...car,
             images: Array.isArray(car.images)
                 ? (car.images as string[]).map((img) => {
+                    // If it's a Supabase URL with uploads/, extract and use local path
+                    if (img.includes("supabase.co") && img.includes("/uploads/")) {
+                        const match = img.match(/\/uploads\/.*$/)
+                        if (match) return match[0]
+                    }
                     if (img.startsWith("http")) return img
                     if (img.startsWith("uploads/")) return `/${img}`
                     return getPublicUrl("car-images", img)
