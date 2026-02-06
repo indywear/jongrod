@@ -85,8 +85,9 @@ export async function getSession(request: NextRequest): Promise<AuthResult> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        partnerAdmin: {
-          select: { partnerId: true }
+        partnerAdmins: {
+          select: { partnerId: true },
+          take: 1,
         }
       }
     })
@@ -107,7 +108,7 @@ export async function getSession(request: NextRequest): Promise<AuthResult> {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role as UserRole,
-        partnerId: user.partnerAdmin?.partnerId || null,
+        partnerId: user.partnerAdmins?.[0]?.partnerId || null,
       },
       error: null,
     }

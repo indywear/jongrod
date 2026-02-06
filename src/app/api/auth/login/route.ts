@@ -43,8 +43,9 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findFirst({
       where: email ? { email } : { phone },
       include: {
-        partnerAdmin: {
-          select: { partnerId: true }
+        partnerAdmins: {
+          select: { partnerId: true },
+          take: 1,
         }
       }
     })
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       lastName: user.lastName,
       role: user.role,
       avatarUrl: user.avatarUrl,
-      partnerId: user.partnerAdmin?.partnerId || null,
+      partnerId: user.partnerAdmins?.[0]?.partnerId || null,
     }
 
     const response = NextResponse.json({ user: userData })
