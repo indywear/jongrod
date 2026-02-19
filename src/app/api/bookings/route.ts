@@ -192,30 +192,37 @@ export async function POST(request: NextRequest) {
     const bookingNumber = generateBookingNumber()
     const reservedUntil = new Date(Date.now() + 15 * 60 * 1000)
 
-    const booking = await prisma.booking.create({
-      data: {
-        bookingNumber,
-        carId: data.carId,
-        partnerId: car.partnerId,
-        userId: verifiedUserId,
-        customerName: data.customerName,
-        customerEmail: data.customerEmail || "",
-        customerPhone: data.customerPhone,
-        customerNote: data.customerNote,
-        pickupDatetime: pickupDate,
-        returnDatetime: returnDate,
-        pickupLocation: data.pickupLocation || "",
-        returnLocation: data.returnLocation || data.pickupLocation || "",
-        totalPrice: calculatedPrice, // Use server-calculated price
-        reservedUntil,
-      },
-      include: {
-        car: true,
-        partner: {
-          select: { name: true, phone: true, telegramChatId: true },
+    // Create booking and mark car as RENTED in a single transaction
+    const [booking] = await prisma.$transaction([
+      prisma.booking.create({
+        data: {
+          bookingNumber,
+          carId: data.carId,
+          partnerId: car.partnerId,
+          userId: verifiedUserId,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail || "",
+          customerPhone: data.customerPhone,
+          customerNote: data.customerNote,
+          pickupDatetime: pickupDate,
+          returnDatetime: returnDate,
+          pickupLocation: data.pickupLocation || "",
+          returnLocation: data.returnLocation || data.pickupLocation || "",
+          totalPrice: calculatedPrice,
+          reservedUntil,
         },
-      },
-    })
+        include: {
+          car: true,
+          partner: {
+            select: { name: true, phone: true, telegramChatId: true },
+          },
+        },
+      }),
+      prisma.car.update({
+        where: { id: data.carId },
+        data: { rentalStatus: "RENTED" },
+      }),
+    ])
 
     return NextResponse.json({
       booking,

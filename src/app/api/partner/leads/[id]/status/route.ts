@@ -106,6 +106,25 @@ export async function PATCH(
       data: updateData,
     })
 
+    // Auto-update car rentalStatus when booking is completed or cancelled
+    if (status === "COMPLETED" || status === "CANCELLED") {
+      // Check if car has any other active bookings before making it available
+      const otherActiveBookings = await prisma.booking.count({
+        where: {
+          carId: booking.carId,
+          id: { not: booking.id },
+          leadStatus: { notIn: ["CANCELLED", "COMPLETED"] },
+        },
+      })
+
+      if (otherActiveBookings === 0) {
+        await prisma.car.update({
+          where: { id: booking.carId },
+          data: { rentalStatus: "AVAILABLE" },
+        })
+      }
+    }
+
     return NextResponse.json({ booking: updatedBooking })
   } catch (error) {
     console.error("Error updating lead status:", error)
