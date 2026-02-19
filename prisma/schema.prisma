@@ -91,21 +91,25 @@ enum BannerPosition {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  email             String?   @unique
-  phone             String?   @unique
-  password          String
-  firstName         String
-  lastName          String
-  avatarUrl         String?
-  role              UserRole  @default(CUSTOMER)
-  isBlacklisted     Boolean   @default(false)
-  languagePreference String   @default("th")
-  isEmailVerified   Boolean   @default(false)
-  isPhoneVerified   Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  email                 String?   @unique
+  phone                 String?   @unique
+  password              String
+  firstName             String
+  lastName              String
+  avatarUrl             String?
+  role                  UserRole  @default(CUSTOMER)
+  isBlacklisted         Boolean   @default(false)
+  languagePreference    String    @default("th")
+  isEmailVerified       Boolean   @default(false)
+  isPhoneVerified       Boolean   @default(false)
+  passwordResetToken    String?
+  passwordResetExpires  DateTime?
+  emailVerificationToken String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
+  sessions          Session[]
   bookings          Booking[]
   documents         Document[]
   partnerAdmins     PartnerAdmin[]
@@ -117,6 +121,19 @@ model User {
   articles          Article[]
 
   @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
 }
 
 model Partner {
@@ -182,6 +199,7 @@ model Car {
   partner        Partner        @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   bookings       Booking[]
 
+  @@index([partnerId, approvalStatus])
   @@map("cars")
 }
 
@@ -220,6 +238,9 @@ model Booking {
   returnConfirmedBy   User?       @relation("ReturnConfirmedBy", fields: [returnConfirmedById], references: [id], onDelete: SetNull)
   commissionLog       CommissionLog?
 
+  @@index([partnerId, leadStatus])
+  @@index([carId])
+  @@index([userId])
   @@map("bookings")
 }
 
@@ -242,6 +263,7 @@ model Document {
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewedBy      User?          @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
 
+  @@index([userId, status])
   @@map("documents")
 }
 
@@ -275,6 +297,7 @@ model CommissionLog {
   partner          Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   booking          Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
+  @@index([partnerId])
   @@map("commission_logs")
 }
 
@@ -331,6 +354,7 @@ model Article {
 
   author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  @@index([isPublished])
   @@map("articles")
 }
 

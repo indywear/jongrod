@@ -118,13 +118,13 @@ export function Navbar() {
                 {user.role === "PARTNER_ADMIN" && (
                   <DropdownMenuItem onClick={() => router.push("/partner")}>
                     <Car className="h-4 w-4 mr-2" />
-                    Partner Dashboard
+                    {t("nav.partnerDashboard")}
                   </DropdownMenuItem>
                 )}
                 {user.role === "PLATFORM_OWNER" && (
                   <DropdownMenuItem onClick={() => router.push("/admin")}>
                     <Settings className="h-4 w-4 mr-2" />
-                    Admin Dashboard
+                    {t("nav.adminDashboard")}
                   </DropdownMenuItem>
                 )}
                 {user.role === "CUSTOMER" && (

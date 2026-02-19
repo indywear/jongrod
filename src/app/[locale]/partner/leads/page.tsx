@@ -52,7 +52,7 @@ interface Lead {
   customerName: string
   customerPhone: string
   customerEmail?: string
-  car: string
+  car: { brand: string; model: string; year: number }
   pickupDate: string
   returnDate: string
   pickupLocation?: string
@@ -91,7 +91,9 @@ export default function PartnerLeadsPage() {
     customerPhone: "",
     customerEmail: "",
     pickupDate: "",
+    pickupTime: "10:00",
     returnDate: "",
+    returnTime: "10:00",
     pickupLocation: "",
     returnLocation: "",
     customerNote: "",
@@ -172,7 +174,9 @@ export default function PartnerLeadsPage() {
       customerPhone: lead.customerPhone,
       customerEmail: lead.customerEmail || "",
       pickupDate: lead.pickupDate,
+      pickupTime: "10:00",
       returnDate: lead.returnDate,
+      returnTime: "10:00",
       pickupLocation: lead.pickupLocation || "",
       returnLocation: lead.returnLocation || "",
       customerNote: lead.customerNote || "",
@@ -198,8 +202,8 @@ export default function PartnerLeadsPage() {
           customerName: editForm.customerName,
           customerPhone: editForm.customerPhone,
           customerEmail: editForm.customerEmail,
-          pickupDatetime: editForm.pickupDate ? `${editForm.pickupDate}T10:00:00` : undefined,
-          returnDatetime: editForm.returnDate ? `${editForm.returnDate}T10:00:00` : undefined,
+          pickupDatetime: editForm.pickupDate ? `${editForm.pickupDate}T${editForm.pickupTime}:00` : undefined,
+          returnDatetime: editForm.returnDate ? `${editForm.returnDate}T${editForm.returnTime}:00` : undefined,
           pickupLocation: editForm.pickupLocation,
           returnLocation: editForm.returnLocation,
           customerNote: editForm.customerNote,
@@ -420,7 +424,7 @@ export default function PartnerLeadsPage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell>{lead.car}</TableCell>
+                    <TableCell>{lead.car.brand} {lead.car.model} {lead.car.year}</TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <p>{lead.pickupDate}</p>
@@ -476,7 +480,7 @@ export default function PartnerLeadsPage() {
                                   </div>
                                   <div>
                                     <p className="text-sm text-muted-foreground">รถ</p>
-                                    <p>{selectedLead.car}</p>
+                                    <p>{selectedLead.car.brand} {selectedLead.car.model} {selectedLead.car.year}</p>
                                   </div>
                                   <div>
                                     <p className="text-sm text-muted-foreground">
@@ -600,7 +604,7 @@ export default function PartnerLeadsPage() {
               </div>
               <div className="space-y-2">
                 <Label>
-                  วันคืนรถ 
+                  วันคืนรถ
                   <span className="text-xs text-muted-foreground ml-1">(เพิ่มได้ ลดไม่ได้)</span>
                 </Label>
                 <Input
@@ -608,6 +612,24 @@ export default function PartnerLeadsPage() {
                   value={editForm.returnDate}
                   min={editOriginalReturn}
                   onChange={(e) => setEditForm({ ...editForm, returnDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>เวลารับรถ</Label>
+                <Input
+                  type="time"
+                  value={editForm.pickupTime}
+                  onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>เวลาคืนรถ</Label>
+                <Input
+                  type="time"
+                  value={editForm.returnTime}
+                  onChange={(e) => setEditForm({ ...editForm, returnTime: e.target.value })}
                 />
               </div>
             </div>

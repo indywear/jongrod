@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Car, Users, DoorOpen, Fuel, Settings2, Filter, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Car, Users, DoorOpen, Fuel, Settings2, Filter, Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -53,32 +54,50 @@ interface Pagination {
 
 export default function CarsPage() {
   const t = useTranslations()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
   const [cars, setCars] = useState<CarData[]>([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState<string>("")
-  const [transmission, setTransmission] = useState<string>("")
-  const [fuelType, setFuelType] = useState<string>("")
-  const [sortBy, setSortBy] = useState<string>("newest")
-  const [page, setPage] = useState(1)
+  const [category, setCategory] = useState<string>(searchParams.get("category") || "")
+  const [transmission, setTransmission] = useState<string>(searchParams.get("transmission") || "")
+  const [fuelType, setFuelType] = useState<string>(searchParams.get("fuelType") || "")
+  const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "newest")
+  const [minPrice, setMinPrice] = useState<string>(searchParams.get("minPrice") || "")
+  const [maxPrice, setMaxPrice] = useState<string>(searchParams.get("maxPrice") || "")
+  const [searchText, setSearchText] = useState<string>(searchParams.get("search") || "")
+  const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"))
   const [pagination, setPagination] = useState<Pagination | null>(null)
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
 
-  useEffect(() => {
-    fetchCars()
-  }, [category, transmission, fuelType, sortBy, page])
+  const [activeSearch, setActiveSearch] = useState<string>(searchParams.get("search") || "")
 
-  const fetchCars = async () => {
+  const fetchCars = useCallback(async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams()
-      if (category && category !== "all") params.append("category", category)
-      if (transmission && transmission !== "all") params.append("transmission", transmission)
-      if (fuelType && fuelType !== "all") params.append("fuelType", fuelType)
-      if (sortBy) params.append("sort", sortBy)
-      params.append("page", page.toString())
-      params.append("limit", "12")
+      // Build URL params for sharing (exclude defaults)
+      const urlParams = new URLSearchParams()
+      if (category && category !== "all") urlParams.set("category", category)
+      if (transmission && transmission !== "all") urlParams.set("transmission", transmission)
+      if (fuelType && fuelType !== "all") urlParams.set("fuelType", fuelType)
+      if (sortBy && sortBy !== "newest") urlParams.set("sort", sortBy)
+      if (minPrice) urlParams.set("minPrice", minPrice)
+      if (maxPrice) urlParams.set("maxPrice", maxPrice)
+      if (activeSearch.trim()) urlParams.set("search", activeSearch.trim())
+      if (page > 1) urlParams.set("page", page.toString())
 
-      const response = await fetch(`/api/cars?${params.toString()}`)
+      // Sync URL with current filters
+      const qs = urlParams.toString()
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false })
+
+      // Build API params (include defaults + limit)
+      const apiParams = new URLSearchParams(urlParams)
+      if (sortBy) apiParams.set("sort", sortBy)
+      apiParams.set("page", page.toString())
+      apiParams.set("limit", "12")
+
+      const response = await fetch(`/api/cars?${apiParams.toString()}`)
       const data = await response.json()
       setCars(data.cars || [])
       setPagination(data.pagination || null)
@@ -91,7 +110,11 @@ export default function CarsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [category, transmission, fuelType, sortBy, minPrice, maxPrice, activeSearch, page, router, pathname])
+
+  useEffect(() => {
+    fetchCars()
+  }, [fetchCars])
 
   // All possible category labels for translation
   const categoryLabels: Record<string, string> = {
@@ -136,6 +159,11 @@ export default function CarsPage() {
     setPage(1)
   }
 
+  const handleSearch = () => {
+    setActiveSearch(searchText.trim())
+    setPage(1)
+  }
+
   const FilterContent = () => (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -173,7 +201,7 @@ export default function CarsPage() {
       </div>
 
       <div className="space-y-2">
-        <Label>{t("cars.fuelType.PETROL")}</Label>
+        <Label>{t("cars.filter.fuelType")}</Label>
         <Select value={fuelType} onValueChange={(v) => { setFuelType(v); handleFilterChange(); }}>
           <SelectTrigger>
             <SelectValue placeholder={t("common.all")} />
@@ -192,8 +220,18 @@ export default function CarsPage() {
       <div className="space-y-2">
         <Label>{t("cars.filter.priceRange")}</Label>
         <div className="flex gap-2">
-          <Input type="number" placeholder="Min" />
-          <Input type="number" placeholder="Max" />
+          <Input
+            type="number"
+            placeholder="Min"
+            value={minPrice}
+            onChange={(e) => { setMinPrice(e.target.value); handleFilterChange(); }}
+          />
+          <Input
+            type="number"
+            placeholder="Max"
+            value={maxPrice}
+            onChange={(e) => { setMaxPrice(e.target.value); handleFilterChange(); }}
+          />
         </div>
       </div>
 
@@ -204,6 +242,10 @@ export default function CarsPage() {
           setCategory("")
           setTransmission("")
           setFuelType("")
+          setMinPrice("")
+          setMaxPrice("")
+          setSearchText("")
+          setActiveSearch("")
           setPage(1)
         }}
       >
@@ -213,10 +255,37 @@ export default function CarsPage() {
   )
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-primary/90 to-primary py-12 md:py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+            {t("home.heroTitle")}
+          </h1>
+          <p className="text-white/80 mb-8 text-lg">
+            {t("home.heroSubtitle")}
+          </p>
+          <div className="max-w-xl mx-auto flex gap-2">
+            <Input
+              type="text"
+              placeholder={t("home.searchPlaceholder")}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              className="bg-white text-foreground h-12 text-base"
+            />
+            <Button size="lg" variant="secondary" onClick={handleSearch} className="h-12 px-6">
+              <Search className="h-5 w-5 mr-2" />
+              {t("common.search")}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">{t("cars.title")}</h1>
+          <h2 className="text-2xl font-bold">{t("cars.title")}</h2>
           {pagination && (
             <p className="text-sm text-muted-foreground mt-1">
               {t("common.showing")} {cars.length} {t("common.of")} {pagination.total} {t("common.items")}
@@ -408,6 +477,7 @@ export default function CarsPage() {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   )

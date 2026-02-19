@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
         customerName,
         customerPhone,
         customerEmail: booking.customerEmail,
-        car: `${booking.car.brand} ${booking.car.model} ${booking.car.year}`,
+        car: { brand: booking.car.brand, model: booking.car.model, year: booking.car.year },
         pickupDate: booking.pickupDatetime.toISOString().split("T")[0],
         returnDate: booking.returnDatetime.toISOString().split("T")[0],
         pickupLocation: booking.pickupLocation,

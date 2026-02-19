@@ -14,6 +14,10 @@ export const metadata: Metadata = {
     template: "%s | Jongrod",
   },
   description: "ระบบเช่ารถออนไลน์ที่ครบวงจร เปรียบเทียบราคาจากหลายร้านในที่เดียว",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

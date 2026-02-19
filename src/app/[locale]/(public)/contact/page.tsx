@@ -8,16 +8,60 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { MapPin, Phone, Mail, Clock } from "lucide-react"
+import { toast } from "sonner"
+import { siteConfig } from "@/lib/config"
 
 export default function ContactPage() {
   const t = useTranslations()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  })
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setTimeout(() => setIsSubmitting(false), 1000)
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      if (res.ok) {
+        toast.success("ส่งข้อความสำเร็จ!")
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        })
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "ไม่สามารถส่งข้อความได้")
+      }
+    } catch {
+      toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
+
+  const { company, hours } = siteConfig
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -38,15 +82,15 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold mb-1">ที่อยู่</h3>
                     <p className="text-muted-foreground">
-                      <span className="font-medium text-foreground">Meprompt Selective Co.,Ltd</span>
+                      <span className="font-medium text-foreground">{company.nameEn}</span>
                       <br />
-                      บจก. มีพรอมท์ ซีเลคทีฟ (สำนักงานใหญ่)
+                      {company.nameTh}
                       <br />
-                      25/9 ชั้น2 ลาดพร้าว ซอย1แยก11
+                      {company.address}
                       <br />
-                      จอมพล จตุจักร กทม 10900
+                      {company.district}
                       <br />
-                      <span className="text-sm">ID: 0125556023513</span>
+                      <span className="text-sm">ID: {company.taxId}</span>
                     </p>
                   </div>
                 </div>
@@ -59,7 +103,7 @@ export default function ContactPage() {
                   <Phone className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-1">โทรศัพท์</h3>
-                    <p className="text-muted-foreground">02-054-6619</p>
+                    <p className="text-muted-foreground">{company.phone}</p>
                   </div>
                 </div>
               </CardContent>
@@ -71,7 +115,7 @@ export default function ContactPage() {
                   <Mail className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-1">อีเมล</h3>
-                    <p className="text-muted-foreground">koondyasdw@gmail.com</p>
+                    <p className="text-muted-foreground">{company.email}</p>
                   </div>
                 </div>
               </CardContent>
@@ -83,12 +127,8 @@ export default function ContactPage() {
                   <Clock className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-1">เวลาทำการ</h3>
-                    <p className="text-muted-foreground">
-                      จันทร์ - ศุกร์: 08:00 - 18:00
-                    </p>
-                    <p className="text-muted-foreground">
-                      เสาร์ - อาทิตย์: 09:00 - 17:00
-                    </p>
+                    <p className="text-muted-foreground">{hours.weekday}</p>
+                    <p className="text-muted-foreground">{hours.weekend}</p>
                   </div>
                 </div>
               </CardContent>
@@ -104,28 +144,60 @@ export default function ContactPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>ชื่อ</Label>
-                    <Input required />
+                    <Input
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>นามสกุล</Label>
-                    <Input required />
+                    <Input
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>อีเมล</Label>
-                  <Input type="email" required />
+                  <Input
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>เบอร์โทร</Label>
-                  <Input type="tel" />
+                  <Input
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>หัวข้อ</Label>
-                  <Input required />
+                  <Input
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>ข้อความ</Label>
-                  <Textarea rows={4} required />
+                  <Textarea
+                    name="message"
+                    rows={4}
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "กำลังส่ง..." : "ส่งข้อความ"}

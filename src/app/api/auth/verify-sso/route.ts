@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { createSession } from "@/lib/auth"
 import crypto from "crypto"
 
 /**
@@ -63,7 +64,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify Signature
-        const secret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
+        const secret = process.env.NEXTAUTH_SECRET
+        if (!secret) {
+            return NextResponse.json(
+                { error: "Server configuration error" },
+                { status: 500 }
+            )
+        }
         const expectedSignature = crypto.createHmac("sha256", secret).update(dataPart).digest("hex")
 
         if (signature !== expectedSignature) {
@@ -92,8 +99,8 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Return User Data (Same format as login)
-        return NextResponse.json({
+        // Create session cookie (same as login flow)
+        const response = NextResponse.json({
             user: {
                 id: user.id,
                 email: user.email,
@@ -104,6 +111,10 @@ export async function POST(request: NextRequest) {
                 avatarUrl: user.avatarUrl,
             },
         })
+
+        await createSession(user.id, response)
+
+        return response
     } catch (error) {
         console.error("SSO Verification Error:", error)
         return NextResponse.json(

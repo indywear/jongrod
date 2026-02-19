@@ -25,6 +25,7 @@ export default function SSOPage() {
                     headers: {
                         "Content-Type": "application/json",
                     },
+                    credentials: "include",
                     body: JSON.stringify({ token }),
                 })
 
@@ -34,11 +35,8 @@ export default function SSOPage() {
                     throw new Error(data.error || "Verification failed")
                 }
 
-                // Login success: Save to localStorage
-                localStorage.setItem("user", JSON.stringify(data.user))
-
-                // Redirect to home
-                window.location.href = "/" // Force hard reload to update Navbar state
+                // Session cookie is set by the API — redirect to home
+                window.location.href = "/"
             } catch (err) {
                 console.error("SSO Error:", err)
                 setError(err instanceof Error ? err.message : "Authentication failed")

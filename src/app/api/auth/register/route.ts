@@ -8,9 +8,7 @@ import { z } from "zod"
 const registerSchema = z.object({
   email: z.string().email("อีเมลไม่ถูกต้อง").optional(),
   phone: z.string()
-    .min(9, "เบอร์โทรต้องมีอย่างน้อย 9 หลัก")
-    .max(15, "เบอร์โทรไม่ถูกต้อง")
-    .regex(/^[0-9+\-\s]+$/, "เบอร์โทรไม่ถูกต้อง")
+    .regex(/^0[689]\d{8}$/, "เบอร์โทรไม่ถูกต้อง (เช่น 0812345678)")
     .optional(),
   password: z.string()
     .min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")

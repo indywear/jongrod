@@ -6,7 +6,8 @@ import crypto from "crypto"
 
 // Helper to generate SSO Token (HMAC Signed)
 function generateSSOToken(userId: string) {
-    const secret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
+    const secret = process.env.NEXTAUTH_SECRET
+    if (!secret) throw new Error("NEXTAUTH_SECRET environment variable is required")
     const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
     const data = `${userId}:${expiresAt}`
     const signature = crypto.createHmac("sha256", secret).update(data).digest("hex")
@@ -16,10 +17,14 @@ function generateSSOToken(userId: string) {
 
 const registerSchema = z.object({
     email: z.string().email(),
-    password: z.string().min(6),
+    password: z.string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Z]/, "Password must contain an uppercase letter")
+        .regex(/[a-z]/, "Password must contain a lowercase letter")
+        .regex(/[0-9]/, "Password must contain a digit"),
     firstName: z.string().min(1),
     lastName: z.string().min(1),
-    phone: z.string().min(9),
+    phone: z.string().regex(/^0[689]\d{8}$/, "Invalid Thai phone number"),
 })
 
 /**

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Plus, MoreHorizontal, Pencil, Car, Trash2, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface CarData {
   id: string
@@ -44,18 +45,23 @@ interface CarData {
 
 export default function PartnerCarsPage() {
   const t = useTranslations()
+  const { user } = useAuth()
   const [cars, setCars] = useState<CarData[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("all")
 
   useEffect(() => {
-    fetchCars()
-  }, [])
+    if (user?.partnerId) {
+      fetchCars()
+    }
+  }, [user?.partnerId])
 
   const fetchCars = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/partner/cars?partnerId=av-carrent-official")
+      const response = await fetch(`/api/partner/cars?partnerId=${user?.partnerId}`, {
+        credentials: "include",
+      })
       const data = await response.json()
       setCars(data.cars || [])
     } catch (error) {

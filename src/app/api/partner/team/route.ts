@@ -212,8 +212,17 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    const body = await request.json()
-    const { id } = body
+    // Support both query param (?id=xxx) and body ({ id: "xxx" })
+    const { searchParams } = new URL(request.url)
+    let id = searchParams.get("id")
+    if (!id) {
+      try {
+        const body = await request.json()
+        id = body.id
+      } catch {
+        // No body provided
+      }
+    }
 
     if (!id) {
       return NextResponse.json(

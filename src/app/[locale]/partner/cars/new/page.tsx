@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +18,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronLeft, Upload, X } from "lucide-react"
 import { Link } from "@/i18n/navigation"
+import { toast } from "sonner"
 
 const features = [
   "GPS",
@@ -34,8 +36,12 @@ const features = [
 export default function NewCarPage() {
   const t = useTranslations()
   const router = useRouter()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const [imageUrls, setImageUrls] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
@@ -69,13 +75,71 @@ export default function NewCarPage() {
     )
   }
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    try {
+      for (const file of Array.from(files)) {
+        const formDataUpload = new FormData()
+        formDataUpload.append("file", file)
+
+        const res = await fetch("/api/partner/cars/upload-image", {
+          method: "POST",
+          credentials: "include",
+          body: formDataUpload,
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setImageUrls((prev) => [...prev, data.url])
+        } else {
+          const data = await res.json()
+          toast.error(data.error || "Failed to upload image")
+        }
+      }
+    } catch {
+      toast.error("Failed to upload images")
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
+
+    try {
+      const res = await fetch("/api/partner/cars", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          ...formData,
+          features: selectedFeatures,
+          images: imageUrls,
+          partnerId: user?.partnerId,
+        }),
+      })
+
+      if (res.ok) {
+        toast.success("เพิ่มรถสำเร็จ!")
+        router.push("/partner/cars")
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "ไม่สามารถเพิ่มรถได้")
+      }
+    } catch {
+      toast.error("เกิดข้อผิดพลาด")
+    } finally {
       setIsLoading(false)
-      router.push("/partner/cars")
-    }, 1000)
+    }
   }
 
   return (
@@ -156,6 +220,7 @@ export default function NewCarPage() {
                     <SelectItem value="PICKUP">{t("cars.category.PICKUP")}</SelectItem>
                     <SelectItem value="LUXURY">{t("cars.category.LUXURY")}</SelectItem>
                     <SelectItem value="COMPACT">{t("cars.category.COMPACT")}</SelectItem>
+                    <SelectItem value="MOTORCYCLE">{t("cars.category.MOTORCYCLE")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -260,17 +325,45 @@ export default function NewCarPage() {
             <CardTitle>{t("partner.carForm.images")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="border-2 border-dashed rounded-lg p-8 text-center">
+            {imageUrls.length > 0 && (
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {imageUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Car image ${index + 1}`}
+                      className="w-full h-24 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div
+              className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
               <p className="text-muted-foreground">
-                ลากไฟล์มาวางหรือคลิกเพื่ออัพโหลด
+                {isUploading ? "กำลังอัพโหลด..." : "ลากไฟล์มาวางหรือคลิกเพื่ออัพโหลด"}
               </p>
               <p className="text-sm text-muted-foreground">
                 รองรับ JPG, PNG ขนาดไม่เกิน 5MB
               </p>
-              <Button type="button" variant="outline" className="mt-4">
-                เลือกไฟล์
-              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+              />
             </div>
           </CardContent>
         </Card>

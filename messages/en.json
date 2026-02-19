@@ -37,7 +37,8 @@
     "myBookings": "My Bookings",
     "documents": "Documents",
     "partnerDashboard": "Partner Dashboard",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Admin Dashboard",
+    "articles": "Articles"
   },
   "home": {
     "heroTitle": "Easy, Convenient, Safe Car Rental",
@@ -143,7 +144,8 @@
     "changePassword": "Change Password",
     "currentPassword": "Current Password",
     "newPassword": "New Password",
-    "language": "Language"
+    "language": "Language",
+    "changePhoto": "Change Photo"
   },
   "myBookings": {
     "title": "My Bookings",
@@ -226,6 +228,9 @@
     "activate": "Activate"
   },
   "footer": {
+    "links": "Links",
+    "policies": "Policies",
+    "contactUs": "Contact",
     "about": "About Us",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",

@@ -1,6 +1,7 @@
 import { ReactNode } from "react"
 import { Link } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
+import Image from "next/image"
 import {
   LayoutDashboard,
   Building2,
@@ -10,7 +11,28 @@ import {
   Coins,
   FileText,
   Settings,
+  Home,
 } from "lucide-react"
+
+function AdminHeader() {
+  const t = useTranslations()
+
+  return (
+    <header className="h-16 border-b bg-card flex items-center justify-between px-4 lg:px-6">
+      <Link href="/admin" className="flex items-center gap-2">
+        <Image src="/logo.png" alt="Jongrod" width={32} height={32} />
+        <span className="font-bold text-lg">Admin</span>
+      </Link>
+      <Link
+        href="/cars"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <Home className="h-4 w-4" />
+        {t("nav.home")}
+      </Link>
+    </header>
+  )
+}
 
 function AdminSidebar() {
   const t = useTranslations("admin")
@@ -28,9 +50,6 @@ function AdminSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r bg-card min-h-[calc(100vh-64px)]">
-      <div className="p-4 border-b">
-        <h2 className="font-bold text-lg">Admin Panel</h2>
-      </div>
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => (
           <Link
@@ -49,9 +68,12 @@ function AdminSidebar() {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <div className="flex-1 p-6 lg:p-8">{children}</div>
+    <div className="min-h-screen flex flex-col">
+      <AdminHeader />
+      <div className="flex flex-1">
+        <AdminSidebar />
+        <div className="flex-1 p-6 lg:p-8">{children}</div>
+      </div>
     </div>
   )
 }

@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
     const bookingId = formData.get("bookingId") as string
     const customerName = formData.get("customerName") as string
     const idCardFront = formData.get("idCardFront") as File | null
-    const idCardBack = formData.get("idCardBack") as File | null
     const driverLicense = formData.get("driverLicense") as File | null
 
     if (!bookingId || !customerName) {
@@ -61,16 +60,6 @@ export async function POST(request: NextRequest) {
         { error: `ใบขับขี่: ${driverLicenseValidation.error}` },
         { status: 400 }
       )
-    }
-
-    if (idCardBack) {
-      const idCardBackValidation = validateFile(idCardBack)
-      if (!idCardBackValidation.valid) {
-        return NextResponse.json(
-          { error: `บัตรประชาชนด้านหลัง: ${idCardBackValidation.error}` },
-          { status: 400 }
-        )
-      }
     }
 
     const booking = await prisma.booking.findUnique({
@@ -110,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     const uploadedUrls: Record<string, string> = {}
     const timestamp = Date.now()
-    const sanitizedName = customerName.replace(/[^a-zA-Z0-9ก-๙]/g, "_")
+    const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || "customer"
 
     const idCardFrontBuffer = Buffer.from(await idCardFront.arrayBuffer())
     const idCardFrontPath = `bookings/${bookingId}/${sanitizedName}_id_front_${timestamp}.${getFileExtension(idCardFront.name)}`
@@ -128,24 +117,6 @@ export async function POST(request: NextRequest) {
     }
     uploadedUrls.idCardFront = idCardFrontResult.url!
 
-    if (idCardBack) {
-      const idCardBackBuffer = Buffer.from(await idCardBack.arrayBuffer())
-      const idCardBackPath = `bookings/${bookingId}/${sanitizedName}_id_back_${timestamp}.${getFileExtension(idCardBack.name)}`
-      const idCardBackResult = await uploadFile(
-        "documents",
-        idCardBackPath,
-        idCardBackBuffer,
-        idCardBack.type
-      )
-      if (idCardBackResult.error) {
-        return NextResponse.json(
-          { error: `Failed to upload ID card back: ${idCardBackResult.error}` },
-          { status: 500 }
-        )
-      }
-      uploadedUrls.idCardBack = idCardBackResult.url!
-    }
-
     const driverLicenseBuffer = Buffer.from(await driverLicense.arrayBuffer())
     const driverLicensePath = `bookings/${bookingId}/${sanitizedName}_license_${timestamp}.${getFileExtension(driverLicense.name)}`
     const driverLicenseResult = await uploadFile(
@@ -161,6 +132,36 @@ export async function POST(request: NextRequest) {
       )
     }
     uploadedUrls.driverLicense = driverLicenseResult.url!
+
+    // Determine userId from session or booking
+    const userId = session.user?.id || booking.userId
+
+    // Create Document records in the database so Partner can review them
+    const createdDocs = []
+
+    if (userId) {
+      const idCardDoc = await prisma.document.create({
+        data: {
+          userId,
+          type: "ID_CARD",
+          documentNumber: `BK-${booking.bookingNumber}`,
+          frontImageUrl: uploadedUrls.idCardFront,
+          status: "PENDING",
+        },
+      })
+      createdDocs.push(idCardDoc)
+
+      const licenseDoc = await prisma.document.create({
+        data: {
+          userId,
+          type: "DRIVER_LICENSE",
+          documentNumber: `BK-${booking.bookingNumber}`,
+          frontImageUrl: uploadedUrls.driverLicense,
+          status: "PENDING",
+        },
+      })
+      createdDocs.push(licenseDoc)
+    }
 
     // Send Telegram notification for document upload
     if (booking.partner.telegramChatId) {
@@ -183,6 +184,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       documents: uploadedUrls,
+      documentIds: createdDocs.map((d) => d.id),
     })
   } catch (error) {
     console.error("Error uploading documents:", error)

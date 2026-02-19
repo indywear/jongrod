@@ -2,9 +2,6 @@ import { NextIntlClientProvider, hasLocale } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { routing } from "@/i18n/routing"
-import { Navbar } from "@/components/shared/Navbar"
-import { Footer } from "@/components/shared/Footer"
-import { PromoPopup } from "@/components/shared/PromoPopup"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/contexts/AuthContext"
 import type { Metadata } from "next"
@@ -35,13 +32,8 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        {children}
         <Toaster />
-        <PromoPopup />
       </AuthProvider>
     </NextIntlClientProvider>
   )

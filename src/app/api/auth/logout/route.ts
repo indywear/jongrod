@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { clearSession } from "@/lib/auth"
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const response = NextResponse.json({ success: true })
-  clearSession(response)
+  await clearSession(response, request)
   return response
 }

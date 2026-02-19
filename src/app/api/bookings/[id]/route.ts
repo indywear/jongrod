@@ -44,15 +44,11 @@ export async function GET(
     const { user } = await getSession(request)
 
     if (!user) {
-      // Guest access - only allow basic info for their own booking
+      // Unauthenticated - only minimal info, no personal or pricing data
       return NextResponse.json({
         booking: {
           id: booking.id,
           bookingNumber: booking.bookingNumber,
-          car: booking.car,
-          pickupDatetime: booking.pickupDatetime,
-          returnDatetime: booking.returnDatetime,
-          totalPrice: booking.totalPrice,
           leadStatus: booking.leadStatus,
         },
       })

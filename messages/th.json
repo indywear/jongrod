@@ -37,7 +37,8 @@
     "myBookings": "การจองของฉัน",
     "documents": "เอกสาร",
     "partnerDashboard": "แดชบอร์ดพาร์ทเนอร์",
-    "adminDashboard": "แดชบอร์ดแอดมิน"
+    "adminDashboard": "แดชบอร์ดแอดมิน",
+    "articles": "บทความ"
   },
   "home": {
     "heroTitle": "เช่ารถง่าย สะดวก ปลอดภัย",
@@ -71,6 +72,7 @@
       "PICKUP": "กระบะ",
       "LUXURY": "หรูหรา",
       "COMPACT": "ขนาดเล็ก",
+      "MOTORCYCLE": "มอเตอร์ไซค์",
       "MOTORCYCLE": "มอเตอร์ไซค์"
     },
     "transmission": {
@@ -143,7 +145,8 @@
     "changePassword": "เปลี่ยนรหัสผ่าน",
     "currentPassword": "รหัสผ่านปัจจุบัน",
     "newPassword": "รหัสผ่านใหม่",
-    "language": "ภาษา"
+    "language": "ภาษา",
+    "changePhoto": "เปลี่ยนรูปภาพ"
   },
   "myBookings": {
     "title": "การจองของฉัน",
@@ -226,6 +229,9 @@
     "activate": "เปิดใช้งาน"
   },
   "footer": {
+    "links": "ลิงก์",
+    "policies": "นโยบาย",
+    "contactUs": "ติดต่อ",
     "about": "เกี่ยวกับเรา",
     "terms": "ข้อกำหนดการใช้งาน",
     "privacy": "นโยบายความเป็นส่วนตัว",

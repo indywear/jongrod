@@ -82,10 +82,10 @@ export default function PartnerDashboard() {
         monthRevenue,
       })
 
-      setRecentLeads(leads.slice(0, 5).map((lead: { id: string; bookingNumber: string; car: string; status: string }) => ({
+      setRecentLeads(leads.slice(0, 5).map((lead: { id: string; bookingNumber: string; car: { brand: string; model: string; year: number }; status: string }) => ({
         id: lead.id,
         bookingNumber: lead.bookingNumber,
-        car: { brand: lead.car.split(" ")[0], model: lead.car.split(" ").slice(1).join(" ") },
+        car: { brand: lead.car.brand, model: `${lead.car.model} ${lead.car.year}` },
         status: lead.status,
       })))
     } catch (error) {

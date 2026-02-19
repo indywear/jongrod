@@ -85,12 +85,10 @@ export default function BookingPage({
   const [bookingId, setBookingId] = useState("")
   
   const [idCardFront, setIdCardFront] = useState<UploadedFile | null>(null)
-  const [idCardBack, setIdCardBack] = useState<UploadedFile | null>(null)
   const [driverLicense, setDriverLicense] = useState<UploadedFile | null>(null)
   const [uploadingDocs, setUploadingDocs] = useState(false)
-  
+
   const idCardFrontRef = useRef<HTMLInputElement>(null)
-  const idCardBackRef = useRef<HTMLInputElement>(null)
   const driverLicenseRef = useRef<HTMLInputElement>(null)
 
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2)}`)
@@ -285,9 +283,6 @@ export default function BookingPage({
       formDataUpload.append("bookingId", bookingId)
       formDataUpload.append("customerName", formData.name)
       formDataUpload.append("idCardFront", idCardFront.file)
-      if (idCardBack) {
-        formDataUpload.append("idCardBack", idCardBack.file)
-      }
       formDataUpload.append("driverLicense", driverLicense.file)
 
       const response = await fetch("/api/documents/upload", {
@@ -610,6 +605,7 @@ export default function BookingPage({
                           alt={`${car.brand} ${car.model}`}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                       ) : (
                         <Car className="h-8 w-8 text-muted-foreground" />
@@ -696,17 +692,6 @@ export default function BookingPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  <div className="flex gap-2">
-                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-amber-700">
-                      <p className="font-medium mb-1">สำคัญ: ชื่อในเอกสารต้องตรงกับชื่อที่กรอก</p>
-                      <p>ชื่อที่กรอก: <span className="font-semibold">{formData.name}</span></p>
-                      <p className="mt-1">กรุณาตรวจสอบให้แน่ใจว่าชื่อในบัตรประชาชนและใบขับขี่ตรงกับชื่อที่กรอกไว้</p>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
@@ -744,47 +729,6 @@ export default function BookingPage({
                         className="w-full p-8 border-2 border-dashed rounded-lg hover:border-primary transition-colors"
                       >
                         <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">คลิกเพื่อเลือกรูปภาพ</p>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      บัตรประชาชน (ด้านหลัง) <span className="text-muted-foreground text-sm">(ถ้ามี)</span>
-                    </Label>
-                    <input
-                      ref={idCardBackRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileSelect(e, setIdCardBack)}
-                    />
-                    {idCardBack ? (
-                      <div className="relative border rounded-lg p-2">
-                        <div className="aspect-video relative rounded overflow-hidden bg-muted">
-                          <Image
-                            src={idCardBack.preview}
-                            alt="บัตรประชาชนด้านหลัง"
-                            fill
-                            className="object-contain"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setIdCardBack(null)}
-                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => idCardBackRef.current?.click()}
-                        className="w-full p-6 border-2 border-dashed rounded-lg hover:border-primary transition-colors"
-                      >
-                        <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">คลิกเพื่อเลือกรูปภาพ</p>
                       </button>
                     )}
@@ -839,8 +783,8 @@ export default function BookingPage({
                 )}
 
                 <div className="flex justify-end">
-                  <Button 
-                    onClick={handleUploadDocuments} 
+                  <Button
+                    onClick={handleUploadDocuments}
                     disabled={uploadingDocs || !idCardFront || !driverLicense}
                   >
                     {uploadingDocs ? (
@@ -932,6 +876,7 @@ export default function BookingPage({
                       alt={`${car.brand} ${car.model}`}
                       fill
                       className="object-cover"
+                      unoptimized
                     />
                   ) : (
                     <Car className="h-6 w-6 text-muted-foreground" />

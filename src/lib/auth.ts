@@ -43,22 +43,20 @@ export async function createSession(
   const hashedToken = hashToken(token)
   const expiresAt = new Date(Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
 
-  // Store session in database (using User's updatedAt as session marker for simplicity)
-  // In production, you should create a separate Session table
-  await prisma.user.update({
-    where: { id: userId },
+  // Store session in database using dedicated Session table
+  await prisma.session.create({
     data: {
-      // Store hashed token in a field - we'll use the existing structure
-      // For now, we'll encode it in a way that can be verified
-      updatedAt: new Date(),
+      userId,
+      token: hashedToken,
+      expiresAt,
     },
   })
 
-  // Set HTTP-only cookie
+  // Set HTTP-only cookie with SameSite=Strict for CSRF protection
   response.cookies.set(SESSION_COOKIE_NAME, `${userId}:${token}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     path: "/",
     expires: expiresAt,
   })
@@ -79,6 +77,16 @@ export async function getSession(request: NextRequest): Promise<AuthResult> {
 
     if (!userId || !token) {
       return { user: null, error: "Invalid session format" }
+    }
+
+    // Verify session token in database
+    const hashedToken = hashToken(token)
+    const session = await prisma.session.findUnique({
+      where: { token: hashedToken },
+    })
+
+    if (!session || session.userId !== userId || session.expiresAt < new Date()) {
+      return { user: null, error: "Invalid or expired session" }
     }
 
     // Verify user exists
@@ -118,12 +126,27 @@ export async function getSession(request: NextRequest): Promise<AuthResult> {
   }
 }
 
-// Clear session cookie
-export function clearSession(response: NextResponse): void {
+// Clear session cookie and delete from database
+export async function clearSession(
+  response: NextResponse,
+  request?: NextRequest
+): Promise<void> {
+  // Delete session from database if we have the token
+  if (request) {
+    const cookie = request.cookies.get(SESSION_COOKIE_NAME)
+    if (cookie?.value) {
+      const [, token] = cookie.value.split(":")
+      if (token) {
+        const hashedToken = hashToken(token)
+        await prisma.session.deleteMany({ where: { token: hashedToken } }).catch(() => {})
+      }
+    }
+  }
+
   response.cookies.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     path: "/",
     expires: new Date(0),
   })

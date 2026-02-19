@@ -39,6 +39,12 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const category = searchParams.get("category")
+        const transmission = searchParams.get("transmission")
+        const fuelType = searchParams.get("fuelType")
+        const minPrice = searchParams.get("minPrice")
+        const maxPrice = searchParams.get("maxPrice")
+        const sort = searchParams.get("sort")
+        const search = searchParams.get("search")
         const page = parseInt(searchParams.get("page") || "1")
         const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100) // Max 100 per page
         const skip = (page - 1) * limit
@@ -53,10 +59,39 @@ export async function GET(request: NextRequest) {
             where.category = category
         }
 
+        if (transmission) {
+            where.transmission = transmission
+        }
+
+        if (fuelType) {
+            where.fuelType = fuelType
+        }
+
+        if (minPrice || maxPrice) {
+            where.pricePerDay = {}
+            if (minPrice) where.pricePerDay.gte = parseFloat(minPrice)
+            if (maxPrice) where.pricePerDay.lte = parseFloat(maxPrice)
+        }
+
+        if (search) {
+            where.OR = [
+                { brand: { contains: search, mode: "insensitive" } },
+                { model: { contains: search, mode: "insensitive" } },
+            ]
+        }
+
+        // Sorting
+        let orderBy: Record<string, string> = { createdAt: "desc" }
+        if (sort === "price_asc") {
+            orderBy = { pricePerDay: "asc" }
+        } else if (sort === "price_desc") {
+            orderBy = { pricePerDay: "desc" }
+        }
+
         const [cars, total, availableCategories] = await Promise.all([
             prisma.car.findMany({
                 where,
-                orderBy: { createdAt: "desc" },
+                orderBy,
                 include: {
                     partner: {
                         select: {

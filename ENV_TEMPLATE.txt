@@ -2,13 +2,20 @@
 # Copy this content to a new file named .env.local
 
 # Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://wmmvocaskpluvtcjljzr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_MLvcjY08MdLz2Hkv-C_y0A_lS37XJTh
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_dZ8HHE0RDxchIV983ofKWQ_7PsWyQa6
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 # Database Configuration (Prisma) - Session Pooler
-DATABASE_URL=postgresql://postgres.wmmvocaskpluvtcjljzr:idc7RIhEMmi18eBn@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+DATABASE_URL=postgresql://user:password@host:5432/database
 
 # NextAuth Configuration
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=jongrod-secret-key-change-in-production-2024
+NEXTAUTH_SECRET=generate_a_strong_random_secret_here
+
+# Resend (Email Service)
+RESEND_API_KEY=your_resend_api_key_here
+RESEND_FROM_EMAIL=Jongrod <noreply@yourdomain.com>
+
+# Telegram Bot (Optional)
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
