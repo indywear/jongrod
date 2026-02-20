@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Menu, Globe, User, LogOut, Settings, Car } from "lucide-react"
+import { Menu, Globe, User, LogOut, Settings, Car, FileText, CalendarDays } from "lucide-react"
 import { useRouter } from "@/i18n/navigation"
 import { useLocale } from "next-intl"
 import { useAuth } from "@/contexts/AuthContext"
@@ -127,10 +127,20 @@ export function Navbar() {
                   </DropdownMenuItem>
                 )}
                 {user.role === "CUSTOMER" && (
-                  <DropdownMenuItem onClick={() => router.push("/profile")}>
-                    <User className="h-4 w-4 mr-2" />
-                    {t("nav.profile")}
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onClick={() => router.push("/profile")}>
+                      <User className="h-4 w-4 mr-2" />
+                      {t("nav.profile")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/my-bookings")}>
+                      <CalendarDays className="h-4 w-4 mr-2" />
+                      {t("nav.myBookings")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/documents")}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      {t("nav.documents")}
+                    </DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">

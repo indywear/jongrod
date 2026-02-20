@@ -51,7 +51,6 @@ export function Footer() {
               <p>{company.nameTh}</p>
               <p>{company.address}</p>
               <p>{company.district}</p>
-              <p>ID: {company.taxId}</p>
               <p className="pt-2">Tel: {company.phone}</p>
               <p>Email: {company.email}</p>
             </div>

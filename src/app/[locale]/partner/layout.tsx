@@ -13,22 +13,26 @@ import {
   FileCheck,
   Home,
 } from "lucide-react"
+import { PartnerMobileNav } from "@/components/partner/PartnerMobileNav"
 
 function PartnerHeader() {
   const t = useTranslations()
 
   return (
     <header className="h-16 border-b bg-card flex items-center justify-between px-4 lg:px-6">
-      <Link href="/partner" className="flex items-center gap-2">
-        <Image src="/logo.png" alt="Jongrod" width={40} height={40} />
-        <span className="font-bold text-lg">Partner</span>
-      </Link>
+      <div className="flex items-center gap-2">
+        <PartnerMobileNav />
+        <Link href="/partner" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Jongrod" width={40} height={40} />
+          <span className="font-bold text-lg">Partner</span>
+        </Link>
+      </div>
       <Link
         href="/cars"
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <Home className="h-4 w-4" />
-        {t("nav.home")}
+        <span className="hidden sm:inline">{t("nav.home")}</span>
       </Link>
     </header>
   )
@@ -72,7 +76,7 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
       <PartnerHeader />
       <div className="flex flex-1">
         <PartnerSidebar />
-        <div className="flex-1 p-6 lg:p-8">{children}</div>
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">{children}</div>
       </div>
     </div>
   )

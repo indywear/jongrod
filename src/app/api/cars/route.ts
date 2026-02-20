@@ -41,6 +41,8 @@ export async function GET(request: NextRequest) {
         const category = searchParams.get("category")
         const transmission = searchParams.get("transmission")
         const fuelType = searchParams.get("fuelType")
+        const brand = searchParams.get("brand")
+        const year = searchParams.get("year")
         const minPrice = searchParams.get("minPrice")
         const maxPrice = searchParams.get("maxPrice")
         const sort = searchParams.get("sort")
@@ -67,6 +69,14 @@ export async function GET(request: NextRequest) {
             where.fuelType = fuelType
         }
 
+        if (brand) {
+            where.brand = { contains: brand, mode: "insensitive" }
+        }
+
+        if (year) {
+            where.year = parseInt(year)
+        }
+
         if (minPrice || maxPrice) {
             where.pricePerDay = {}
             if (minPrice) where.pricePerDay.gte = parseFloat(minPrice)
@@ -74,6 +84,29 @@ export async function GET(request: NextRequest) {
         }
 
         if (search) {
+            // Map Thai brand names to English
+            const thaiBrandMap: Record<string, string> = {
+                "ฮอนด้า": "HONDA", "honda": "HONDA",
+                "โตโยต้า": "TOYOTA", "toyota": "TOYOTA",
+                "นิสสัน": "NISSAN", "nissan": "NISSAN",
+                "มาสด้า": "MAZDA", "mazda": "MAZDA",
+                "ซูซูกิ": "SUZUKI", "suzuki": "SUZUKI",
+                "มิตซูบิชิ": "MITSUBISHI", "mitsubishi": "MITSUBISHI",
+                "อีซูซุ": "ISUZU", "isuzu": "ISUZU",
+                "เอ็มจี": "MG", "mg": "MG",
+                "บีวายดี": "BYD", "byd": "BYD",
+                "เนต้า": "NETA", "neta": "NETA",
+                "เกรทวอลล์": "GWM", "gwm": "GWM",
+                "เบนซ์": "MERCEDES", "benz": "MERCEDES", "mercedes": "MERCEDES",
+                "บีเอ็ม": "BMW", "bmw": "BMW",
+                "ฟอร์ด": "FORD", "ford": "FORD",
+                "เชฟโรเลต": "CHEVROLET", "chevrolet": "CHEVROLET",
+                "วอลโว่": "VOLVO", "volvo": "VOLVO",
+                "ซูบารุ": "SUBARU", "subaru": "SUBARU",
+                "เทสล่า": "TESLA", "tesla": "TESLA",
+                "ไอออน": "AION", "aion": "AION",
+                "ลีปมอเตอร์": "LEAPMOTOR", "leapmotor": "LEAPMOTOR",
+            }
             // Map Thai keywords to enum values
             const thaiToFuelType: Record<string, string> = {
                 "ไฟฟ้า": "EV", "รถไฟฟ้า": "EV", "อีวี": "EV", "ev": "EV",
@@ -94,11 +127,27 @@ export async function GET(request: NextRequest) {
                 "ออโต้": "AUTO", "auto": "AUTO", "อัตโนมัติ": "AUTO",
                 "ธรรมดา": "MANUAL", "เกียร์ธรรมดา": "MANUAL", "manual": "MANUAL",
             }
+            // Map Thai model names
+            const thaiModelMap: Record<string, string> = {
+                "ซีวิค": "CIVIC", "civic": "CIVIC",
+                "ซิตี้": "CITY", "city": "CITY",
+                "แอคคอร์ด": "ACCORD", "accord": "ACCORD",
+                "ซีอาร์วี": "CR-V", "crv": "CR-V", "cr-v": "CR-V",
+                "เอชอาร์วี": "HR-V", "hrv": "HR-V", "hr-v": "HR-V",
+                "แจ๊ส": "JASS", "jazz": "JASS", "jass": "JASS",
+                "แคมรี่": "CAMRY", "camry": "CAMRY",
+                "อัลติส": "ALTIS", "altis": "ALTIS",
+                "ยาริส": "YARIS", "yaris": "YARIS",
+                "คอมมิวเตอร์": "COMMUTER", "commuter": "COMMUTER",
+                "ดอลฟิน": "DOLPHIN", "dolphin": "DOLPHIN",
+            }
 
             const searchLower = search.toLowerCase()
+            const matchedBrand = thaiBrandMap[searchLower] || thaiBrandMap[search]
             const matchedFuelType = thaiToFuelType[searchLower] || thaiToFuelType[search]
             const matchedCategory = thaiToCategory[searchLower] || thaiToCategory[search]
             const matchedTransmission = thaiToTransmission[searchLower] || thaiToTransmission[search]
+            const matchedModel = thaiModelMap[searchLower] || thaiModelMap[search]
 
             const orConditions: Record<string, unknown>[] = [
                 { brand: { contains: search, mode: "insensitive" } },
@@ -106,6 +155,8 @@ export async function GET(request: NextRequest) {
                 { licensePlate: { contains: search, mode: "insensitive" } },
             ]
 
+            if (matchedBrand) orConditions.push({ brand: { contains: matchedBrand, mode: "insensitive" } })
+            if (matchedModel) orConditions.push({ model: { contains: matchedModel, mode: "insensitive" } })
             if (matchedFuelType) orConditions.push({ fuelType: matchedFuelType })
             if (matchedCategory) orConditions.push({ category: matchedCategory })
             if (matchedTransmission) orConditions.push({ transmission: matchedTransmission })
@@ -121,7 +172,9 @@ export async function GET(request: NextRequest) {
             orderBy = { pricePerDay: "desc" }
         }
 
-        const [cars, total, availableCategories] = await Promise.all([
+        const baseWhere = { rentalStatus: "AVAILABLE" as const, approvalStatus: "APPROVED" as const }
+
+        const [cars, total, availableCategories, availableBrands, availableYears] = await Promise.all([
             prisma.car.findMany({
                 where,
                 orderBy,
@@ -139,11 +192,20 @@ export async function GET(request: NextRequest) {
             prisma.car.count({ where }),
             prisma.car.groupBy({
                 by: ['category'],
-                where: {
-                    rentalStatus: "AVAILABLE",
-                    approvalStatus: "APPROVED"
-                },
+                where: baseWhere,
                 _count: { category: true }
+            }),
+            prisma.car.groupBy({
+                by: ['brand'],
+                where: baseWhere,
+                _count: { brand: true },
+                orderBy: { brand: 'asc' }
+            }),
+            prisma.car.groupBy({
+                by: ['year'],
+                where: baseWhere,
+                _count: { year: true },
+                orderBy: { year: 'desc' }
             }),
         ])
 
@@ -182,6 +244,8 @@ export async function GET(request: NextRequest) {
                 totalPages: Math.ceil(total / limit),
             },
             categories: availableCategories.map(c => c.category),
+            brands: availableBrands.map(b => ({ name: b.brand, count: b._count.brand })),
+            years: availableYears.map(y => ({ year: y.year, count: y._count.year })),
         })
     } catch (error) {
         console.error("Error fetching cars:", error)

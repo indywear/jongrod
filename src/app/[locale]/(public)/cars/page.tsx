@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Car, Users, DoorOpen, Fuel, Settings2, Filter, Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { Car, Users, DoorOpen, Fuel, Settings2, Filter, Loader2, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -52,6 +52,16 @@ interface Pagination {
   totalPages: number
 }
 
+interface BrandInfo {
+  name: string
+  count: number
+}
+
+interface YearInfo {
+  year: number
+  count: number
+}
+
 export default function CarsPage() {
   const t = useTranslations()
   const searchParams = useSearchParams()
@@ -63,6 +73,8 @@ export default function CarsPage() {
   const [category, setCategory] = useState<string>(searchParams.get("category") || "")
   const [transmission, setTransmission] = useState<string>(searchParams.get("transmission") || "")
   const [fuelType, setFuelType] = useState<string>(searchParams.get("fuelType") || "")
+  const [brand, setBrand] = useState<string>(searchParams.get("brand") || "")
+  const [year, setYear] = useState<string>(searchParams.get("year") || "")
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "newest")
   const [minPrice, setMinPrice] = useState<string>(searchParams.get("minPrice") || "")
   const [maxPrice, setMaxPrice] = useState<string>(searchParams.get("maxPrice") || "")
@@ -70,28 +82,29 @@ export default function CarsPage() {
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"))
   const [pagination, setPagination] = useState<Pagination | null>(null)
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
+  const [availableBrands, setAvailableBrands] = useState<BrandInfo[]>([])
+  const [availableYears, setAvailableYears] = useState<YearInfo[]>([])
 
   const [activeSearch, setActiveSearch] = useState<string>(searchParams.get("search") || "")
 
   const fetchCars = useCallback(async () => {
     setLoading(true)
     try {
-      // Build URL params for sharing (exclude defaults)
       const urlParams = new URLSearchParams()
       if (category && category !== "all") urlParams.set("category", category)
       if (transmission && transmission !== "all") urlParams.set("transmission", transmission)
       if (fuelType && fuelType !== "all") urlParams.set("fuelType", fuelType)
+      if (brand && brand !== "all") urlParams.set("brand", brand)
+      if (year && year !== "all") urlParams.set("year", year)
       if (sortBy && sortBy !== "newest") urlParams.set("sort", sortBy)
       if (minPrice) urlParams.set("minPrice", minPrice)
       if (maxPrice) urlParams.set("maxPrice", maxPrice)
       if (activeSearch.trim()) urlParams.set("search", activeSearch.trim())
       if (page > 1) urlParams.set("page", page.toString())
 
-      // Sync URL with current filters
       const qs = urlParams.toString()
       router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false })
 
-      // Build API params (include defaults + limit)
       const apiParams = new URLSearchParams(urlParams)
       if (sortBy) apiParams.set("sort", sortBy)
       apiParams.set("page", page.toString())
@@ -101,22 +114,21 @@ export default function CarsPage() {
       const data = await response.json()
       setCars(data.cars || [])
       setPagination(data.pagination || null)
-      if (data.categories) {
-        setAvailableCategories(data.categories)
-      }
+      if (data.categories) setAvailableCategories(data.categories)
+      if (data.brands) setAvailableBrands(data.brands)
+      if (data.years) setAvailableYears(data.years)
     } catch (error) {
       console.error("Error fetching cars:", error)
       setCars([])
     } finally {
       setLoading(false)
     }
-  }, [category, transmission, fuelType, sortBy, minPrice, maxPrice, activeSearch, page, router, pathname])
+  }, [category, transmission, fuelType, brand, year, sortBy, minPrice, maxPrice, activeSearch, page, router, pathname])
 
   useEffect(() => {
     fetchCars()
   }, [fetchCars])
 
-  // All possible category labels for translation
   const categoryLabels: Record<string, string> = {
     SEDAN: t("cars.category.SEDAN"),
     SUV: t("cars.category.SUV"),
@@ -127,7 +139,6 @@ export default function CarsPage() {
     MOTORCYCLE: t("cars.category.MOTORCYCLE"),
   }
 
-  // Only show categories that have cars
   const categories = availableCategories.map(cat => ({
     value: cat,
     label: categoryLabels[cat] || cat,
@@ -151,8 +162,18 @@ export default function CarsPage() {
     { value: "price_desc", label: t("cars.sort.price_desc") },
   ]
 
-  const getCategoryLabel = (cat: string) => {
-    return categoryLabels[cat] || cat
+  const getCategoryLabel = (cat: string) => categoryLabels[cat] || cat
+
+  const fuelTypeLabels: Record<string, string> = {
+    PETROL: t("cars.fuelType.PETROL"),
+    DIESEL: t("cars.fuelType.DIESEL"),
+    HYBRID: t("cars.fuelType.HYBRID"),
+    EV: t("cars.fuelType.EV"),
+  }
+
+  const transmissionLabels: Record<string, string> = {
+    AUTO: t("cars.transmission.AUTO"),
+    MANUAL: t("cars.transmission.MANUAL"),
   }
 
   const handleFilterChange = () => {
@@ -164,8 +185,67 @@ export default function CarsPage() {
     setPage(1)
   }
 
+  const clearAllFilters = () => {
+    setCategory("")
+    setTransmission("")
+    setFuelType("")
+    setBrand("")
+    setYear("")
+    setMinPrice("")
+    setMaxPrice("")
+    setSearchText("")
+    setActiveSearch("")
+    setPage(1)
+  }
+
+  // Count active filters
+  const activeFilters: { label: string; onClear: () => void }[] = []
+  if (category && category !== "all") {
+    activeFilters.push({ label: `${t("cars.filter.category")}: ${getCategoryLabel(category)}`, onClear: () => { setCategory(""); handleFilterChange() } })
+  }
+  if (brand && brand !== "all") {
+    activeFilters.push({ label: `${t("cars.filter.brand")}: ${brand}`, onClear: () => { setBrand(""); handleFilterChange() } })
+  }
+  if (transmission && transmission !== "all") {
+    activeFilters.push({ label: `${t("cars.filter.transmission")}: ${transmissionLabels[transmission] || transmission}`, onClear: () => { setTransmission(""); handleFilterChange() } })
+  }
+  if (fuelType && fuelType !== "all") {
+    activeFilters.push({ label: `${t("cars.filter.fuelType")}: ${fuelTypeLabels[fuelType] || fuelType}`, onClear: () => { setFuelType(""); handleFilterChange() } })
+  }
+  if (year && year !== "all") {
+    activeFilters.push({ label: `${t("cars.year")}: ${year}`, onClear: () => { setYear(""); handleFilterChange() } })
+  }
+  if (minPrice) {
+    activeFilters.push({ label: `${t("cars.filter.minPrice")}: ${Number(minPrice).toLocaleString()}`, onClear: () => { setMinPrice(""); handleFilterChange() } })
+  }
+  if (maxPrice) {
+    activeFilters.push({ label: `${t("cars.filter.maxPrice")}: ${Number(maxPrice).toLocaleString()}`, onClear: () => { setMaxPrice(""); handleFilterChange() } })
+  }
+  if (activeSearch) {
+    activeFilters.push({ label: `"${activeSearch}"`, onClear: () => { setSearchText(""); setActiveSearch(""); handleFilterChange() } })
+  }
+
   const FilterContent = () => (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Brand */}
+      <div className="space-y-2">
+        <Label>{t("cars.filter.brand")}</Label>
+        <Select value={brand} onValueChange={(v) => { setBrand(v); handleFilterChange(); }}>
+          <SelectTrigger>
+            <SelectValue placeholder={t("common.all")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common.all")}</SelectItem>
+            {availableBrands.map((b) => (
+              <SelectItem key={b.name} value={b.name}>
+                {b.name} ({b.count})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Category */}
       <div className="space-y-2">
         <Label>{t("cars.filter.category")}</Label>
         <Select value={category} onValueChange={(v) => { setCategory(v); handleFilterChange(); }}>
@@ -183,6 +263,25 @@ export default function CarsPage() {
         </Select>
       </div>
 
+      {/* Year */}
+      <div className="space-y-2">
+        <Label>{t("cars.year")}</Label>
+        <Select value={year} onValueChange={(v) => { setYear(v); handleFilterChange(); }}>
+          <SelectTrigger>
+            <SelectValue placeholder={t("common.all")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common.all")}</SelectItem>
+            {availableYears.map((y) => (
+              <SelectItem key={y.year} value={y.year.toString()}>
+                {y.year} ({y.count})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Transmission */}
       <div className="space-y-2">
         <Label>{t("cars.filter.transmission")}</Label>
         <Select value={transmission} onValueChange={(v) => { setTransmission(v); handleFilterChange(); }}>
@@ -200,6 +299,7 @@ export default function CarsPage() {
         </Select>
       </div>
 
+      {/* Fuel Type */}
       <div className="space-y-2">
         <Label>{t("cars.filter.fuelType")}</Label>
         <Select value={fuelType} onValueChange={(v) => { setFuelType(v); handleFilterChange(); }}>
@@ -217,18 +317,19 @@ export default function CarsPage() {
         </Select>
       </div>
 
+      {/* Price Range */}
       <div className="space-y-2">
         <Label>{t("cars.filter.priceRange")}</Label>
         <div className="flex gap-2">
           <Input
             type="number"
-            placeholder="Min"
+            placeholder={t("cars.filter.minPrice")}
             value={minPrice}
             onChange={(e) => { setMinPrice(e.target.value); handleFilterChange(); }}
           />
           <Input
             type="number"
-            placeholder="Max"
+            placeholder={t("cars.filter.maxPrice")}
             value={maxPrice}
             onChange={(e) => { setMaxPrice(e.target.value); handleFilterChange(); }}
           />
@@ -238,18 +339,9 @@ export default function CarsPage() {
       <Button
         variant="outline"
         className="w-full"
-        onClick={() => {
-          setCategory("")
-          setTransmission("")
-          setFuelType("")
-          setMinPrice("")
-          setMaxPrice("")
-          setSearchText("")
-          setActiveSearch("")
-          setPage(1)
-        }}
+        onClick={clearAllFilters}
       >
-        Clear Filters
+        {t("cars.filter.clearFilters")}
       </Button>
     </div>
   )
@@ -282,202 +374,258 @@ export default function CarsPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold">{t("cars.title")}</h2>
-          {pagination && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {t("common.showing")} {cars.length} {t("common.of")} {pagination.total} {t("common.items")}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="md:hidden">
-                <Filter className="h-4 w-4 mr-2" />
-                {t("common.filter")}
+      {/* Quick Category Pills */}
+      {categories.length > 0 && (
+        <div className="container mx-auto px-4 pt-6">
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button
+              variant={!category || category === "all" ? "default" : "outline"}
+              size="sm"
+              className="rounded-full"
+              onClick={() => { setCategory(""); handleFilterChange() }}
+            >
+              {t("common.all")}
+            </Button>
+            {categories.map((cat) => (
+              <Button
+                key={cat.value}
+                variant={category === cat.value ? "default" : "outline"}
+                size="sm"
+                className="rounded-full"
+                onClick={() => { setCategory(cat.value); handleFilterChange() }}
+              >
+                {cat.label}
               </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle>{t("common.filter")}</SheetTitle>
-              </SheetHeader>
-              <div className="mt-6">
-                <FilterContent />
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("common.sort")} />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <aside className="hidden md:block">
-          <Card className="p-6 sticky top-24">
-            <h3 className="font-semibold mb-4">{t("common.filter")}</h3>
-            <FilterContent />
-          </Card>
-        </aside>
+      <div className="container mx-auto px-4 py-6">
+        {/* Active Filters */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {activeFilters.map((filter, i) => (
+              <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm flex items-center gap-1.5">
+                {filter.label}
+                <button onClick={filter.onClear} className="hover:text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+            {activeFilters.length > 1 && (
+              <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-muted-foreground text-xs">
+                {t("cars.filter.clearFilters")}
+              </Button>
+            )}
+          </div>
+        )}
 
-        <div className="md:col-span-3">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : cars.length === 0 ? (
-            <div className="text-center py-12">
-              <Car className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">{t("common.noData")}</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {cars.map((car) => (
-                  <Card key={car.id} className="overflow-hidden group">
-                    <div className="aspect-video bg-muted relative">
-                      {car.images && car.images.length > 0 && car.images[0] ? (
-                        <Image
-                          src={car.images[0]}
-                          alt={`${car.brand} ${car.model}`}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                          }}
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                          <Image
-                            src="/logo.png"
-                            alt="Logo"
-                            width={160}
-                            height={54}
-                            className="opacity-50"
-                          />
-                        </div>
-                      )}
-                      <Badge className="absolute top-2 right-2">
-                        {getCategoryLabel(car.category)}
-                      </Badge>
-                    </div>
-                    <CardContent className="p-4 space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">
-                          {car.brand} {car.model}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {car.year}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {car.seats}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DoorOpen className="h-4 w-4" />
-                          {car.doors}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Settings2 className="h-4 w-4" />
-                          {t(`cars.transmission.${car.transmission}`)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Fuel className="h-4 w-4" />
-                          {t(`cars.fuelType.${car.fuelType}`)}
-                        </span>
-                      </div>
-
-                      <Separator />
-
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-xl font-bold text-primary">
-                            {Number(car.pricePerDay).toLocaleString()}
-                          </span>
-                          <span className="text-sm text-muted-foreground ml-1">
-                            {t("cars.perDay")}
-                          </span>
-                        </div>
-                        <Link href={`/cars/${car.id}`}>
-                          <Button size="sm">{t("cars.bookNow")}</Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                      let pageNum: number
-                      if (pagination.totalPages <= 5) {
-                        pageNum = i + 1
-                      } else if (page <= 3) {
-                        pageNum = i + 1
-                      } else if (page >= pagination.totalPages - 2) {
-                        pageNum = pagination.totalPages - 4 + i
-                      } else {
-                        pageNum = page - 2 + i
-                      }
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={page === pageNum ? "default" : "outline"}
-                          size="icon"
-                          onClick={() => setPage(pageNum)}
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })}
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                    disabled={page === pagination.totalPages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  
-                  <span className="text-sm text-muted-foreground ml-2">
-                    {t("common.page")} {page} / {pagination.totalPages}
-                  </span>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">{t("cars.title")}</h2>
+            {pagination && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {t("common.showing")} {cars.length} {t("common.of")} {pagination.total} {t("common.items")}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="md:hidden">
+                  <Filter className="h-4 w-4 mr-2" />
+                  {t("common.filter")}
+                  {activeFilters.length > 0 && (
+                    <Badge variant="destructive" className="ml-1.5 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
+                      {activeFilters.length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <SheetHeader>
+                  <SheetTitle>{t("common.filter")}</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6">
+                  <FilterContent />
                 </div>
-              )}
-            </>
-          )}
+              </SheetContent>
+            </Sheet>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder={t("common.sort")} />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <aside className="hidden md:block">
+            <Card className="p-6 sticky top-24">
+              <h3 className="font-semibold mb-4">{t("common.filter")}</h3>
+              <FilterContent />
+            </Card>
+          </aside>
+
+          <div className="md:col-span-3">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : cars.length === 0 ? (
+              <div className="text-center py-12">
+                <Car className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">{t("common.noData")}</p>
+                {activeFilters.length > 0 && (
+                  <Button variant="outline" onClick={clearAllFilters}>
+                    {t("cars.filter.clearFilters")}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {cars.map((car) => (
+                    <Card key={car.id} className="overflow-hidden group">
+                      <div className="aspect-video bg-muted relative">
+                        {car.images && car.images.length > 0 && car.images[0] ? (
+                          <Image
+                            src={car.images[0]}
+                            alt={`${car.brand} ${car.model}`}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                            <Image
+                              src="/logo.png"
+                              alt="Logo"
+                              width={160}
+                              height={54}
+                              className="opacity-50"
+                            />
+                          </div>
+                        )}
+                        <Badge className="absolute top-2 right-2">
+                          {getCategoryLabel(car.category)}
+                        </Badge>
+                      </div>
+                      <CardContent className="p-4 space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-lg">
+                            {car.brand} {car.model}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {car.year}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {car.seats}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DoorOpen className="h-4 w-4" />
+                            {car.doors}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Settings2 className="h-4 w-4" />
+                            {t(`cars.transmission.${car.transmission}`)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Fuel className="h-4 w-4" />
+                            {t(`cars.fuelType.${car.fuelType}`)}
+                          </span>
+                        </div>
+
+                        <Separator />
+
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xl font-bold text-primary">
+                              {Number(car.pricePerDay).toLocaleString()}
+                            </span>
+                            <span className="text-sm text-muted-foreground ml-1">
+                              {t("cars.perDay")}
+                            </span>
+                          </div>
+                          <Link href={`/cars/${car.id}`}>
+                            <Button size="sm">{t("cars.bookNow")}</Button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        let pageNum: number
+                        if (pagination.totalPages <= 5) {
+                          pageNum = i + 1
+                        } else if (page <= 3) {
+                          pageNum = i + 1
+                        } else if (page >= pagination.totalPages - 2) {
+                          pageNum = pagination.totalPages - 4 + i
+                        } else {
+                          pageNum = page - 2 + i
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={page === pageNum ? "default" : "outline"}
+                            size="icon"
+                            onClick={() => setPage(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+                        )
+                      })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                      disabled={page === pagination.totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {t("common.page")} {page} / {pagination.totalPages}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

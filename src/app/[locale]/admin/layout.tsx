@@ -13,23 +13,28 @@ import {
   Settings,
   Home,
   KeyRound,
+  ClipboardList,
 } from "lucide-react"
+import { AdminMobileNav } from "@/components/admin/AdminMobileNav"
 
 function AdminHeader() {
   const t = useTranslations()
 
   return (
     <header className="h-16 border-b bg-card flex items-center justify-between px-4 lg:px-6">
-      <Link href="/admin" className="flex items-center gap-2">
-        <Image src="/logo.png" alt="Jongrod" width={40} height={40} />
-        <span className="font-bold text-lg">Admin</span>
-      </Link>
+      <div className="flex items-center gap-2">
+        <AdminMobileNav />
+        <Link href="/admin" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Jongrod" width={40} height={40} />
+          <span className="font-bold text-lg">Admin</span>
+        </Link>
+      </div>
       <Link
         href="/cars"
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <Home className="h-4 w-4" />
-        {t("nav.home")}
+        <span className="hidden sm:inline">{t("nav.home")}</span>
       </Link>
     </header>
   )
@@ -41,6 +46,7 @@ function AdminSidebar() {
   const navItems = [
     { href: "/admin", icon: LayoutDashboard, label: t("dashboard") },
     { href: "/admin/partners", icon: Building2, label: t("partners") },
+    { href: "/admin/leads", icon: ClipboardList, label: t("leads") },
     { href: "/admin/car-approval", icon: Car, label: t("carApproval") },
     { href: "/admin/doc-approval", icon: FileCheck, label: t("docApproval") },
     { href: "/admin/blacklist", icon: Ban, label: t("blacklist") },
@@ -74,7 +80,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <AdminHeader />
       <div className="flex flex-1">
         <AdminSidebar />
-        <div className="flex-1 p-6 lg:p-8">{children}</div>
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">{children}</div>
       </div>
     </div>
   )

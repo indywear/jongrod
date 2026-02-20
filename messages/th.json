@@ -63,7 +63,11 @@
       "transmission": "เกียร์",
       "fuelType": "เชื้อเพลิง",
       "priceRange": "ช่วงราคา",
-      "brand": "ยี่ห้อ"
+      "brand": "ยี่ห้อ",
+      "minPrice": "ราคาต่ำสุด",
+      "maxPrice": "ราคาสูงสุด",
+      "clearFilters": "ล้างตัวกรอง",
+      "year": "ปี"
     },
     "category": {
       "SEDAN": "ซีดาน",
@@ -224,6 +228,7 @@
     "cms": "จัดการเนื้อหา",
     "settings": "ตั้งค่า",
     "apiKeys": "API Keys",
+    "leads": "Leads ทั้งหมด",
     "approve": "อนุมัติ",
     "reject": "ปฏิเสธ",
     "suspend": "ระงับ",

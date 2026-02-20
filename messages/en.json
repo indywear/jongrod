@@ -63,7 +63,11 @@
       "transmission": "Transmission",
       "fuelType": "Fuel Type",
       "priceRange": "Price Range",
-      "brand": "Brand"
+      "brand": "Brand",
+      "minPrice": "Min Price",
+      "maxPrice": "Max Price",
+      "clearFilters": "Clear Filters",
+      "year": "Year"
     },
     "category": {
       "SEDAN": "Sedan",
@@ -223,6 +227,7 @@
     "cms": "Content Management",
     "settings": "Settings",
     "apiKeys": "API Keys",
+    "leads": "All Leads",
     "approve": "Approve",
     "reject": "Reject",
     "suspend": "Suspend",
