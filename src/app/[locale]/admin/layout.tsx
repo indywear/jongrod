@@ -20,7 +20,7 @@ function AdminHeader() {
   return (
     <header className="h-16 border-b bg-card flex items-center justify-between px-4 lg:px-6">
       <Link href="/admin" className="flex items-center gap-2">
-        <Image src="/logo.png" alt="Jongrod" width={32} height={32} />
+        <Image src="/logo.png" alt="Jongrod" width={40} height={40} />
         <span className="font-bold text-lg">Admin</span>
       </Link>
       <Link

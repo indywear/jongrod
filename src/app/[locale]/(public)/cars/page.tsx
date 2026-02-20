@@ -365,8 +365,8 @@ export default function CarsPage() {
                           <Image
                             src="/logo.png"
                             alt="Logo"
-                            width={120}
-                            height={40}
+                            width={160}
+                            height={54}
                             className="opacity-50"
                           />
                         </div>

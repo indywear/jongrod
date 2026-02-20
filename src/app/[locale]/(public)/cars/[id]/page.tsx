@@ -122,8 +122,8 @@ export default function CarDetailPage({
                 <Image
                   src="/logo.png"
                   alt="Logo"
-                  width={180}
-                  height={60}
+                  width={220}
+                  height={74}
                   className="opacity-50"
                 />
               </div>
