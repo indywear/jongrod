@@ -74,10 +74,43 @@ export async function GET(request: NextRequest) {
         }
 
         if (search) {
-            where.OR = [
+            // Map Thai keywords to enum values
+            const thaiToFuelType: Record<string, string> = {
+                "ไฟฟ้า": "EV", "รถไฟฟ้า": "EV", "อีวี": "EV", "ev": "EV",
+                "เบนซิน": "PETROL", "แก๊ส": "PETROL",
+                "ดีเซล": "DIESEL",
+                "ไฮบริด": "HYBRID", "hybrid": "HYBRID",
+            }
+            const thaiToCategory: Record<string, string> = {
+                "เก๋ง": "SEDAN", "ซีดาน": "SEDAN", "sedan": "SEDAN",
+                "suv": "SUV", "เอสยูวี": "SUV",
+                "แวน": "VAN", "ตู้": "VAN", "van": "VAN",
+                "กระบะ": "PICKUP", "ปิคอัพ": "PICKUP", "pickup": "PICKUP",
+                "หรู": "LUXURY", "luxury": "LUXURY",
+                "เล็ก": "COMPACT", "compact": "COMPACT",
+                "มอเตอร์ไซค์": "MOTORCYCLE", "มอไซค์": "MOTORCYCLE", "บิ๊กไบค์": "MOTORCYCLE",
+            }
+            const thaiToTransmission: Record<string, string> = {
+                "ออโต้": "AUTO", "auto": "AUTO", "อัตโนมัติ": "AUTO",
+                "ธรรมดา": "MANUAL", "เกียร์ธรรมดา": "MANUAL", "manual": "MANUAL",
+            }
+
+            const searchLower = search.toLowerCase()
+            const matchedFuelType = thaiToFuelType[searchLower] || thaiToFuelType[search]
+            const matchedCategory = thaiToCategory[searchLower] || thaiToCategory[search]
+            const matchedTransmission = thaiToTransmission[searchLower] || thaiToTransmission[search]
+
+            const orConditions: Record<string, unknown>[] = [
                 { brand: { contains: search, mode: "insensitive" } },
                 { model: { contains: search, mode: "insensitive" } },
+                { licensePlate: { contains: search, mode: "insensitive" } },
             ]
+
+            if (matchedFuelType) orConditions.push({ fuelType: matchedFuelType })
+            if (matchedCategory) orConditions.push({ category: matchedCategory })
+            if (matchedTransmission) orConditions.push({ transmission: matchedTransmission })
+
+            where.OR = orConditions
         }
 
         // Sorting

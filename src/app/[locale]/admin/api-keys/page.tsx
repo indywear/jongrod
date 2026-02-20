@@ -65,6 +65,7 @@ export default function ApiKeysPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [name, setName] = useState("")
@@ -105,12 +106,20 @@ export default function ApiKeysPage() {
   }, [fetchApiKeys, fetchPartners])
 
   const handleCreate = async () => {
+    setError(null)
     const permissions: string[] = []
     if (permRead) permissions.push("read")
     if (permWrite) permissions.push("write")
     if (permLogin) permissions.push("login")
 
-    if (!name.trim() || permissions.length === 0) return
+    if (!name.trim()) {
+      setError("Please enter a name for the API key")
+      return
+    }
+    if (permissions.length === 0) {
+      setError("Please select at least one permission")
+      return
+    }
 
     setCreating(true)
     try {
@@ -132,10 +141,15 @@ export default function ApiKeysPage() {
         setPermRead(true)
         setPermWrite(false)
         setPermLogin(false)
+        setError(null)
         fetchApiKeys()
+      } else {
+        const data = await res.json().catch(() => ({ error: "Unknown error" }))
+        setError(data.error || `Failed to create API key (${res.status})`)
       }
-    } catch (error) {
-      console.error("Failed to create API key:", error)
+    } catch (err) {
+      console.error("Failed to create API key:", err)
+      setError("Network error. Please try again.")
     } finally {
       setCreating(false)
     }
@@ -186,7 +200,7 @@ export default function ApiKeysPage() {
         <h1 className="text-3xl font-bold">API Keys</h1>
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           setDialogOpen(open)
-          if (!open) setNewKeyResult(null)
+          if (!open) { setNewKeyResult(null); setError(null) }
         }}>
           <DialogTrigger asChild>
             <Button>
@@ -292,6 +306,12 @@ export default function ApiKeysPage() {
                     </label>
                   </div>
                 </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
 
                 <Button
                   className="w-full"
