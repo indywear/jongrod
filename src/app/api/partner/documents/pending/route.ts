@@ -2,6 +2,55 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/partner/documents/pending:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     summary: List pending documents for review
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: partnerId
+ *         schema:
+ *           type: string
+ *         description: Partner ID (defaults to authenticated user's partner)
+ *     responses:
+ *       200:
+ *         description: List of pending documents
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 documents:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [PENDING]
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           firstName:
+ *                             type: string
+ *                           lastName:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           phone:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized - not authenticated or not a partner
+ */
 export async function GET(request: NextRequest) {
   // Require partner role
   const authResult = await requirePartner(request)

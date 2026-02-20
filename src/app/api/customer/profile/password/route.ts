@@ -14,6 +14,50 @@ const changePasswordSchema = z.object({
     .regex(/[0-9]/, "Password must contain a digit"),
 })
 
+/**
+ * @swagger
+ * /api/customer/profile/password:
+ *   post:
+ *     tags:
+ *       - Customer
+ *     summary: Change password
+ *     description: Changes the authenticated user's password. Requires the current password for verification. New password must contain at least 8 characters with uppercase, lowercase, and a digit.
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The user's current password
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: "New password (must contain uppercase, lowercase, and a digit)"
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Validation error or current password is incorrect
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: User not found
+ */
 export async function POST(request: NextRequest) {
   const authResult = await requireAuth(request)
   if (authResult instanceof NextResponse) {

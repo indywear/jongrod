@@ -11,6 +11,51 @@ const createBlacklistSchema = z.object({
   reason: z.string().min(1, "Reason is required"),
 })
 
+/**
+ * @swagger
+ * /api/admin/blacklist:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List blacklisted users
+ *     security:
+ *       - CookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of blacklisted users
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Add user to blacklist
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - documentNumber
+ *               - fullName
+ *               - reason
+ *             properties:
+ *               documentNumber:
+ *                 type: string
+ *               fullName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User added to blacklist
+ *       400:
+ *         description: Validation error or already blacklisted
+ */
 export async function GET(request: NextRequest) {
   // Require admin role
   const authResult = await requireAdmin(request)

@@ -6,6 +6,61 @@ import { requireAdmin } from "@/lib/auth"
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
+/**
+ * @swagger
+ * /api/admin/cms/banners:
+ *   get:
+ *     tags:
+ *       - Admin Banners
+ *     summary: List all banners (admin)
+ *     security:
+ *       - CookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all banners ordered by position and sort order
+ *   post:
+ *     tags:
+ *       - Admin Banners
+ *     summary: Create a new banner
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - image
+ *               - position
+ *             properties:
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               linkUrl:
+ *                 type: string
+ *               position:
+ *                 type: string
+ *                 enum: [HOMEPAGE_HERO, HOMEPAGE_MIDDLE, LISTING_TOP, POPUP]
+ *               sortOrder:
+ *                 type: integer
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Banner created successfully
+ *       400:
+ *         description: Validation error
+ */
 export async function GET(request: NextRequest) {
   // Require admin role
   const authResult = await requireAdmin(request)

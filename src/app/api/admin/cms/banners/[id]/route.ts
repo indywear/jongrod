@@ -3,6 +3,70 @@ import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth"
 import { supabaseAdmin } from "@/lib/supabase"
 
+/**
+ * @swagger
+ * /api/admin/cms/banners/{id}:
+ *   patch:
+ *     tags:
+ *       - Admin Banners
+ *     summary: Update banner
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               linkUrl:
+ *                 type: string
+ *               position:
+ *                 type: string
+ *                 enum: [HOMEPAGE_HERO, HOMEPAGE_MIDDLE, LISTING_TOP, POPUP]
+ *               sortOrder:
+ *                 type: integer
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Banner updated successfully
+ *       400:
+ *         description: Invalid position
+ *       404:
+ *         description: Banner not found
+ *   delete:
+ *     tags:
+ *       - Admin Banners
+ *     summary: Delete banner
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Banner deleted successfully
+ *       404:
+ *         description: Banner not found
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

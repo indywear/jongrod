@@ -2,6 +2,60 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/partner/leads:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     summary: List partner's booking leads
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [NEW, CLAIMED, PICKUP, ACTIVE, RETURN, COMPLETED, CANCELLED]
+ *         description: Filter leads by status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of booking leads with pagination
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 leads:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized - not authenticated or not a partner
+ */
 export async function GET(request: NextRequest) {
   // Require partner role
   const authResult = await requirePartner(request)

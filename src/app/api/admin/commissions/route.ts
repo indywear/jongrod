@@ -2,6 +2,39 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/admin/commissions:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List commission logs
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, PAID]
+ *       - in: query
+ *         name: partnerId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: List of commission logs with pagination and summary
+ */
 export async function GET(request: NextRequest) {
   // Require admin role
   const authResult = await requireAdmin(request)

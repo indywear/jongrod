@@ -2,6 +2,37 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getPublicUrl } from "@/lib/storage"
 
+/**
+ * @swagger
+ * /api/popup:
+ *   get:
+ *     tags:
+ *       - Content
+ *     summary: Get active popup banners
+ *     description: Returns the currently active popup banner based on date range and sort order. Returns null if no active popup is available.
+ *     responses:
+ *       200:
+ *         description: Active popup banner (or null if none active)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 popup:
+ *                   type: object
+ *                   nullable: true
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     title:
+ *                       type: string
+ *                     imageUrl:
+ *                       type: string
+ *                       format: uri
+ *                     linkUrl:
+ *                       type: string
+ *                       format: uri
+ */
 export async function GET() {
   try {
     const now = new Date()

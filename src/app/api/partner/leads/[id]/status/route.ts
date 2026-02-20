@@ -13,6 +13,53 @@ const VALID_TRANSITIONS: Record<LeadStatus, LeadStatus[]> = {
   CANCELLED: [],
 }
 
+/**
+ * @swagger
+ * /api/partner/leads/{id}/status:
+ *   patch:
+ *     tags:
+ *       - Partner
+ *     summary: Update booking lead status
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [NEW, CLAIMED, PICKUP, ACTIVE, RETURN, COMPLETED, CANCELLED]
+ *                 description: New status for the booking lead
+ *               note:
+ *                 type: string
+ *                 description: Optional note (used as cancellation reason when status is CANCELLED)
+ *     responses:
+ *       200:
+ *         description: Booking lead status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 booking:
+ *                   type: object
+ *       400:
+ *         description: Invalid status value or invalid status transition
+ *       404:
+ *         description: Booking not found
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

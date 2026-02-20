@@ -2,6 +2,43 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/admin/documents/{id}/review:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Review document (admin)
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [APPROVED, REJECTED]
+ *               rejectionReason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Document reviewed successfully
+ *       400:
+ *         description: Invalid status or missing rejection reason
+ *       404:
+ *         description: Document not found
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

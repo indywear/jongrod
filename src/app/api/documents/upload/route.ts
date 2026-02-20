@@ -19,6 +19,66 @@ function validateFile(file: File): { valid: boolean; error?: string } {
   return { valid: true }
 }
 
+/**
+ * @swagger
+ * /api/documents/upload:
+ *   post:
+ *     tags:
+ *       - Documents
+ *     summary: Upload ID card and driver license documents
+ *     description: Uploads front ID card and driver license images for a booking. Files must be JPEG, PNG, or WebP and under 10MB each. Creates document records linked to the user and sends a Telegram notification to the partner.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - customerName
+ *               - idCardFront
+ *               - driverLicense
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *                 description: The booking ID to attach documents to
+ *               customerName:
+ *                 type: string
+ *                 description: Customer name for file naming
+ *               idCardFront:
+ *                 type: string
+ *                 format: binary
+ *                 description: Front image of the ID card (JPEG, PNG, or WebP, max 10MB)
+ *               driverLicense:
+ *                 type: string
+ *                 format: binary
+ *                 description: Driver license image (JPEG, PNG, or WebP, max 10MB)
+ *     responses:
+ *       200:
+ *         description: Documents uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 documents:
+ *                   type: object
+ *                   properties:
+ *                     idCardFront:
+ *                       type: string
+ *                       format: uri
+ *                     driverLicense:
+ *                       type: string
+ *                       format: uri
+ *                 documentIds:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       400:
+ *         description: Missing required fields or invalid file type/size
+ */
 export async function POST(request: NextRequest) {
   // Check if user is logged in
   const session = await getSession(request)

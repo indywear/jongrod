@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+/**
+ * @swagger
+ * /api/articles/{slug}:
+ *   get:
+ *     tags:
+ *       - Content
+ *     summary: Get article by slug
+ *     description: Retrieves a single published article by its URL slug, including author information.
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Article URL slug
+ *     responses:
+ *       200:
+ *         description: Article details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 article:
+ *                   type: object
+ *       404:
+ *         description: Article not found
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }

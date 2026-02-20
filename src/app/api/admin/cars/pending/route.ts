@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/admin/cars/pending:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List cars pending approval
+ *     security:
+ *       - CookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of cars with PENDING approval status
+ */
 export async function GET(request: NextRequest) {
   // Require admin role
   const authResult = await requireAdmin(request)

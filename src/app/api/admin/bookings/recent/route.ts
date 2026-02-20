@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/admin/bookings/recent:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List recent bookings
+ *     security:
+ *       - CookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of today's most recent bookings (up to 10)
+ */
 export async function GET(request: NextRequest) {
   // Require admin role
   const authResult = await requireAdmin(request)

@@ -2,6 +2,78 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession, requireAuth, verifyUserOwnership } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   get:
+ *     tags:
+ *       - Bookings
+ *     summary: Get booking details
+ *     description: Retrieves booking details by ID. Returns full details for admins, partners, and the booking owner. Returns limited info for unauthenticated users.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Booking ID
+ *     responses:
+ *       200:
+ *         description: Booking details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 booking:
+ *                   type: object
+ *       404:
+ *         description: Booking not found
+ *   patch:
+ *     tags:
+ *       - Bookings
+ *     summary: Update booking
+ *     description: Updates booking status. Admins and partners can set any valid status. Customers can only cancel their own bookings.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - leadStatus
+ *             properties:
+ *               leadStatus:
+ *                 type: string
+ *                 enum: [NEW, CLAIMED, PICKUP, ACTIVE, RETURN, COMPLETED, CANCELLED]
+ *                 description: New booking status
+ *               reason:
+ *                 type: string
+ *                 description: Cancellation reason (used when status is CANCELLED)
+ *     responses:
+ *       200:
+ *         description: Booking updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 booking:
+ *                   type: object
+ *       400:
+ *         description: Invalid status or invalid status transition
+ *       403:
+ *         description: Not authorized to modify this booking
+ *       404:
+ *         description: Booking not found
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

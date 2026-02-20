@@ -222,6 +222,7 @@
     "commissions": "Commissions",
     "cms": "Content Management",
     "settings": "Settings",
+    "apiKeys": "API Keys",
     "approve": "Approve",
     "reject": "Reject",
     "suspend": "Suspend",

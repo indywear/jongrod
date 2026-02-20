@@ -6,6 +6,55 @@ interface RouteParams {
   params: Promise<{ id: string }>
 }
 
+/**
+ * @swagger
+ * /api/partner/documents/{id}/review:
+ *   patch:
+ *     tags:
+ *       - Partner
+ *     summary: Review a document (approve/reject)
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Document ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [APPROVED, REJECTED]
+ *                 description: Review decision
+ *               rejectionReason:
+ *                 type: string
+ *                 description: Required when status is REJECTED
+ *     responses:
+ *       200:
+ *         description: Document reviewed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 document:
+ *                   type: object
+ *       400:
+ *         description: Invalid status or missing rejection reason
+ *       403:
+ *         description: Not authorized to review this document
+ *       404:
+ *         description: Document not found
+ */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   // Require partner role
   const authResult = await requirePartner(request)

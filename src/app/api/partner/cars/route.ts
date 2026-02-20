@@ -18,6 +18,130 @@ const createCarSchema = z.object({
   pricePerDay: z.union([z.string(), z.number()]),
 })
 
+/**
+ * @swagger
+ * /api/partner/cars:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     summary: List partner's cars
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: partnerId
+ *         schema:
+ *           type: string
+ *         description: Partner ID (defaults to authenticated user's partner)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of cars with pagination
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cars:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized - not authenticated or not a partner
+ *   post:
+ *     tags:
+ *       - Partner
+ *     summary: Add a new car
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - brand
+ *               - model
+ *               - year
+ *               - licensePlate
+ *               - category
+ *               - transmission
+ *               - fuelType
+ *               - seats
+ *               - doors
+ *               - pricePerDay
+ *             properties:
+ *               brand:
+ *                 type: string
+ *               model:
+ *                 type: string
+ *               year:
+ *                 type: integer
+ *               licensePlate:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *                 enum: [SEDAN, SUV, VAN, PICKUP, LUXURY, COMPACT, MOTORCYCLE]
+ *               transmission:
+ *                 type: string
+ *                 enum: [AUTO, MANUAL]
+ *               fuelType:
+ *                 type: string
+ *                 enum: [PETROL, DIESEL, HYBRID, EV]
+ *               seats:
+ *                 type: integer
+ *               doors:
+ *                 type: integer
+ *               features:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               pricePerDay:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Car created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 car:
+ *                   type: object
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized - not authenticated or not a partner
+ *       409:
+ *         description: License plate already exists
+ */
 export async function GET(request: NextRequest) {
   // Require partner role
   const authResult = await requirePartner(request)

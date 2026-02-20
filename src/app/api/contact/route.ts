@@ -11,6 +11,65 @@ const contactSchema = z.object({
   message: z.string().min(1).max(5000),
 })
 
+/**
+ * @swagger
+ * /api/contact:
+ *   post:
+ *     tags:
+ *       - Content
+ *     summary: Send contact form message
+ *     description: Submits a contact form message. Rate limited to 3 requests per minute per IP. Sends email via Resend if configured, otherwise logs to console.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - subject
+ *               - message
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 100
+ *               lastName:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 100
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 maxLength: 200
+ *               phone:
+ *                 type: string
+ *                 maxLength: 20
+ *               subject:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 200
+ *               message:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 5000
+ *     responses:
+ *       200:
+ *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Validation error
+ *       429:
+ *         description: Too many requests (rate limited)
+ */
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || "unknown"
   const { allowed, retryAfter } = checkRateLimit(`contact:${ip}`, 3, 60000)

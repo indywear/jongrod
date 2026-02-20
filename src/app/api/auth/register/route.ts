@@ -37,6 +37,109 @@ function sanitize(input: string): string {
     .trim()
 }
 
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Register a new user account
+ *     description: Creates a new user account with email or phone, password, and name. Automatically logs in the user by setting a session cookie. Rate limited to 3 attempts per minute per IP.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserRegister'
+ *     responses:
+ *       201:
+ *         description: Registration successful. Returns user data and sets a session cookie.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Session cookie
+ *             schema:
+ *               type: string
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                       nullable: true
+ *                     phone:
+ *                       type: string
+ *                       nullable: true
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Validation error (invalid email, weak password, etc.)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       409:
+ *         description: Email or phone number already in use
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *
+ * components:
+ *   schemas:
+ *     UserRegister:
+ *       type: object
+ *       required:
+ *         - password
+ *         - firstName
+ *         - lastName
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User email (required if phone is not provided)
+ *           example: "user@example.com"
+ *         phone:
+ *           type: string
+ *           pattern: "^0[689]\\d{8}$"
+ *           description: Thai phone number (required if email is not provided)
+ *           example: "0812345678"
+ *         password:
+ *           type: string
+ *           minLength: 8
+ *           description: "Password (min 8 chars, must include uppercase, lowercase, and digit)"
+ *           example: "MyPassword123"
+ *         firstName:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 100
+ *           description: First name (Thai or English letters only)
+ *           example: "John"
+ *         lastName:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 100
+ *           description: Last name (Thai or English letters only)
+ *           example: "Doe"
+ */
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting by IP

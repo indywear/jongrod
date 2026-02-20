@@ -4,6 +4,93 @@ import { Prisma } from "@prisma/client"
 
 const LOCK_DURATION_MS = 5 * 60 * 1000
 
+/**
+ * @swagger
+ * /api/cars/{id}/lock:
+ *   post:
+ *     tags:
+ *       - Cars
+ *     summary: Lock car for booking
+ *     description: Acquires a 5-minute temporary lock on a car to prevent concurrent bookings. Uses atomic database operations to prevent race conditions. The same session can refresh an existing lock.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Car ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 minLength: 10
+ *                 description: Unique session identifier for the booking flow
+ *     responses:
+ *       200:
+ *         description: Lock acquired successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 locked:
+ *                   type: boolean
+ *                 lockedByOther:
+ *                   type: boolean
+ *                 lockedUntil:
+ *                   type: string
+ *                   format: date-time
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid session ID
+ *       404:
+ *         description: Car not found
+ *       409:
+ *         description: Car is locked by another user
+ *   delete:
+ *     tags:
+ *       - Cars
+ *     summary: Unlock car
+ *     description: Releases the lock on a car. Only the session that acquired the lock can release it. Idempotent - returns success if the car is already unlocked.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Car ID
+ *       - in: query
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           minLength: 10
+ *         description: Session ID that holds the lock
+ *     responses:
+ *       200:
+ *         description: Car unlocked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 unlocked:
+ *                   type: boolean
+ *       400:
+ *         description: Invalid session ID
+ *       403:
+ *         description: Not authorized to unlock this car (locked by another session)
+ *       404:
+ *         description: Car not found
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -2,6 +2,100 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requirePartner, verifyPartnerOwnership } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/partner/settings:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     summary: Get partner settings
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: partnerId
+ *         schema:
+ *           type: string
+ *         description: Partner ID (defaults to authenticated user's partner)
+ *     responses:
+ *       200:
+ *         description: Partner settings retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 partner:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     contactEmail:
+ *                       type: string
+ *                     minAdvanceHours:
+ *                       type: integer
+ *                     telegramChatId:
+ *                       type: string
+ *                     operatingHours:
+ *                       type: object
+ *                     pickupLocations:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     logoUrl:
+ *                       type: string
+ *       401:
+ *         description: Unauthorized - not authenticated or not a partner
+ *       404:
+ *         description: Partner not found
+ *   patch:
+ *     tags:
+ *       - Partner
+ *     summary: Update partner settings
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               contactEmail:
+ *                 type: string
+ *               minAdvanceHours:
+ *                 type: integer
+ *               telegramChatId:
+ *                 type: string
+ *               operatingHours:
+ *                 type: object
+ *               pickupLocations:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Partner settings updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 partner:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized - not authenticated or not a partner
+ *       404:
+ *         description: Partner not found
+ */
 export async function GET(request: NextRequest) {
   // Require partner role
   const authResult = await requirePartner(request)

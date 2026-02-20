@@ -155,6 +155,7 @@ model Partner {
   bookings        Booking[]
   admins          PartnerAdmin[]
   commissionLogs  CommissionLog[]
+  apiKeys         ApiKey[]
 
   @@map("partners")
 }
@@ -366,4 +367,22 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  key         String    @unique
+  prefix      String
+  partnerId   String?
+  partner     Partner?  @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  permissions String[]  @default(["read"])
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([prefix])
+  @@index([partnerId])
+  @@map("api_keys")
 }

@@ -12,6 +12,7 @@ import {
   FileText,
   Settings,
   Home,
+  KeyRound,
 } from "lucide-react"
 
 function AdminHeader() {
@@ -45,6 +46,7 @@ function AdminSidebar() {
     { href: "/admin/blacklist", icon: Ban, label: t("blacklist") },
     { href: "/admin/commissions", icon: Coins, label: t("commissions") },
     { href: "/admin/cms/banners", icon: FileText, label: t("cms") },
+    { href: "/admin/api-keys", icon: KeyRound, label: t("apiKeys") },
     { href: "/admin/settings", icon: Settings, label: t("settings") },
   ]
 

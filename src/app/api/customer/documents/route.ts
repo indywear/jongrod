@@ -2,6 +2,39 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireCustomer, verifyUserOwnership } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/customer/documents:
+ *   get:
+ *     tags:
+ *       - Customer
+ *     summary: List customer's documents
+ *     description: Retrieves all uploaded documents (ID cards, driver licenses) for the authenticated customer.
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: User ID (defaults to authenticated user)
+ *     responses:
+ *       200:
+ *         description: List of customer documents
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 documents:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to view these documents
+ */
 export async function GET(request: NextRequest) {
   // Require customer role
   const authResult = await requireCustomer(request)

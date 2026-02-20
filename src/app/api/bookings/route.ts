@@ -29,6 +29,89 @@ const createBookingSchema = z.object({
   userId: z.string().optional(),
 })
 
+/**
+ * @swagger
+ * /api/bookings:
+ *   post:
+ *     tags:
+ *       - Bookings
+ *     summary: Create a new booking
+ *     description: Creates a new car rental booking. Validates date ranges, checks car availability, detects overlapping bookings, and reserves the car with a 15-minute hold.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - carId
+ *               - customerName
+ *               - customerPhone
+ *               - pickupDatetime
+ *               - returnDatetime
+ *               - totalPrice
+ *             properties:
+ *               carId:
+ *                 type: string
+ *                 description: The ID of the car to book
+ *               customerName:
+ *                 type: string
+ *                 maxLength: 200
+ *                 description: Full name of the customer
+ *               customerEmail:
+ *                 type: string
+ *                 format: email
+ *                 description: Customer email address (optional)
+ *               customerPhone:
+ *                 type: string
+ *                 minLength: 9
+ *                 maxLength: 20
+ *                 description: Customer phone number
+ *               customerNote:
+ *                 type: string
+ *                 maxLength: 1000
+ *                 description: Additional notes from the customer
+ *               pickupDatetime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Pickup date and time (ISO 8601)
+ *               returnDatetime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Return date and time (ISO 8601)
+ *               pickupLocation:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Pickup location
+ *               returnLocation:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Return location
+ *               totalPrice:
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: number
+ *                 description: Total rental price
+ *               userId:
+ *                 type: string
+ *                 description: User ID (optional, auto-detected from session)
+ *     responses:
+ *       201:
+ *         description: Booking created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 booking:
+ *                   type: object
+ *                 bookingNumber:
+ *                   type: string
+ *       400:
+ *         description: Validation error (invalid input, date format, or price mismatch)
+ *       409:
+ *         description: Car is currently reserved by another user or has overlapping bookings
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

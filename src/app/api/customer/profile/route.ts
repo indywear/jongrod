@@ -3,6 +3,100 @@ import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth"
 import { z } from "zod"
 
+/**
+ * @swagger
+ * /api/customer/profile:
+ *   get:
+ *     tags:
+ *       - Customer
+ *     summary: Get customer profile
+ *     description: Retrieves the authenticated user's profile information.
+ *     security:
+ *       - CookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Customer profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *                     avatarUrl:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     languagePreference:
+ *                       type: string
+ *                     isEmailVerified:
+ *                       type: boolean
+ *                     isPhoneVerified:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: User not found
+ *   patch:
+ *     tags:
+ *       - Customer
+ *     summary: Update customer profile
+ *     description: Updates the authenticated user's profile. Supports updating name, phone, and language preference.
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 100
+ *               lastName:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 100
+ *               phone:
+ *                 type: string
+ *                 pattern: "^0[689]\\d{8}$"
+ *                 description: Thai phone number format
+ *                 nullable: true
+ *               languagePreference:
+ *                 type: string
+ *                 enum: [th, en]
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Not authenticated
+ *       409:
+ *         description: Phone number already in use
+ */
 export async function GET(request: NextRequest) {
   const authResult = await requireAuth(request)
   if (authResult instanceof NextResponse) {

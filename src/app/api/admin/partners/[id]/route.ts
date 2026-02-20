@@ -14,6 +14,87 @@ const updatePartnerSchema = z.object({
   operatingHours: z.string().optional(),
 })
 
+/**
+ * @swagger
+ * /api/admin/partners/{id}:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get partner details
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Partner details
+ *       404:
+ *         description: Partner not found
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Update partner
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               contactEmail:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               commissionRate:
+ *                 type: number
+ *               status:
+ *                 type: string
+ *                 enum: [ACTIVE, SUSPENDED]
+ *               telegramChatId:
+ *                 type: string
+ *               minAdvanceHours:
+ *                 type: number
+ *               operatingHours:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated partner
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Partner not found
+ *   delete:
+ *     tags:
+ *       - Admin
+ *     summary: Delete partner
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Partner deleted successfully
+ *       404:
+ *         description: Partner not found
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

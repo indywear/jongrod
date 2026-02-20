@@ -10,6 +10,55 @@ const forgotPasswordSchema = z.object({
   locale: z.string().max(5).optional(),
 })
 
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Request password reset email
+ *     description: Sends a password reset email to the specified address if an account exists. Always returns success to prevent user enumeration. Rate limited to 3 attempts per minute per IP.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 maxLength: 200
+ *                 description: Email address to send the reset link to
+ *                 example: "user@example.com"
+ *               locale:
+ *                 type: string
+ *                 maxLength: 5
+ *                 description: Locale for the reset email (defaults to "th")
+ *                 example: "th"
+ *     responses:
+ *       200:
+ *         description: Reset email sent (always returns success to prevent enumeration)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "If an account exists with this email, a reset link has been sent."
+ *       400:
+ *         description: Validation error (invalid email format)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || "unknown"
   const { allowed, retryAfter } = checkRateLimit(`forgot-password:${ip}`, 3, 60000)

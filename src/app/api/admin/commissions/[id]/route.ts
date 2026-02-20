@@ -2,6 +2,41 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/admin/commissions/{id}:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Update commission status (mark as paid)
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [PAID]
+ *     responses:
+ *       200:
+ *         description: Commission marked as paid
+ *       400:
+ *         description: Invalid status or already paid
+ *       404:
+ *         description: Commission log not found
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

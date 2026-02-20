@@ -2,6 +2,66 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireCustomer, verifyUserOwnership } from "@/lib/auth"
 
+/**
+ * @swagger
+ * /api/customer/bookings:
+ *   get:
+ *     tags:
+ *       - Customer
+ *     summary: List customer's bookings
+ *     description: Retrieves all bookings for the authenticated customer. Supports filtering by status.
+ *     security:
+ *       - CookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: User ID (defaults to authenticated user)
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [all, NEW, CLAIMED, PICKUP, ACTIVE, RETURN, COMPLETED, CANCELLED]
+ *         description: Filter by booking status
+ *     responses:
+ *       200:
+ *         description: List of customer bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       bookingNumber:
+ *                         type: string
+ *                       car:
+ *                         type: object
+ *                       pickupDate:
+ *                         type: string
+ *                       pickupTime:
+ *                         type: string
+ *                       returnDate:
+ *                         type: string
+ *                       returnTime:
+ *                         type: string
+ *                       totalPrice:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized to view these bookings
+ */
 export async function GET(request: NextRequest) {
   // Require customer role
   const authResult = await requireCustomer(request)
