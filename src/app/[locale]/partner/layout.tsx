@@ -48,7 +48,7 @@ function PartnerSidebar() {
     { href: "/partner/doc-approval", icon: FileCheck, label: t("docApproval") },
     { href: "/partner/team", icon: Users, label: t("team") },
     { href: "/partner/settings", icon: Settings, label: t("settings") },
-    { href: "/partner/import", icon: Upload, label: "Import" },
+    { href: "/partner/import", icon: Upload, label: "นำเข้า" },
     { href: "/partner/export", icon: Download, label: t("export") },
   ]
 

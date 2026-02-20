@@ -30,7 +30,7 @@ export function PartnerMobileNav() {
     { href: "/partner/doc-approval", icon: FileCheck, label: t("docApproval") },
     { href: "/partner/team", icon: Users, label: t("team") },
     { href: "/partner/settings", icon: Settings, label: t("settings") },
-    { href: "/partner/import", icon: Upload, label: "Import" },
+    { href: "/partner/import", icon: Upload, label: "นำเข้า" },
     { href: "/partner/export", icon: Download, label: t("export") },
   ]
 
@@ -43,7 +43,7 @@ export function PartnerMobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-[280px] p-0">
         <div className="p-4 border-b">
-          <span className="font-bold text-lg">Partner Menu</span>
+          <span className="font-bold text-lg">เมนู Partner</span>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (

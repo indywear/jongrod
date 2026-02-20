@@ -167,7 +167,7 @@ export default function NewCarPage() {
                   name="brand"
                   value={formData.brand}
                   onChange={handleInputChange}
-                  placeholder="e.g., Toyota"
+                  placeholder="เช่น Toyota"
                   required
                 />
               </div>
@@ -177,7 +177,7 @@ export default function NewCarPage() {
                   name="model"
                   value={formData.model}
                   onChange={handleInputChange}
-                  placeholder="e.g., Camry"
+                  placeholder="เช่น Camry"
                   required
                 />
               </div>
@@ -197,7 +197,7 @@ export default function NewCarPage() {
                   name="licensePlate"
                   value={formData.licensePlate}
                   onChange={handleInputChange}
-                  placeholder="e.g., กข 1234"
+                  placeholder="เช่น กข 1234"
                   required
                 />
               </div>

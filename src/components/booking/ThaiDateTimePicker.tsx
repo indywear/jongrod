@@ -23,6 +23,7 @@ interface ThaiDateTimePickerProps {
   onDateChange: (date: string) => void
   onTimeChange: (time: string) => void
   minDate?: string
+  minAdvanceHours?: number
   placeholder?: string
   className?: string
 }
@@ -49,6 +50,7 @@ export function ThaiDateTimePicker({
   onDateChange,
   onTimeChange,
   minDate,
+  minAdvanceHours = 4,
   placeholder = "เลือกวันที่",
   className,
 }: ThaiDateTimePickerProps) {
@@ -142,6 +144,17 @@ export function ThaiDateTimePicker({
     )
   }
 
+  const isTimeDisabled = (time: string) => {
+    if (!value) return false
+    const now = new Date()
+    const [hours, minutes] = time.split(":").map(Number)
+    const selectedDate = new Date(value)
+    selectedDate.setHours(hours, minutes, 0, 0)
+
+    const minAllowed = new Date(now.getTime() + minAdvanceHours * 60 * 60 * 1000)
+    return selectedDate < minAllowed
+  }
+
   const days = getDaysInMonth(currentMonth)
 
   return (
@@ -208,17 +221,27 @@ export function ThaiDateTimePicker({
         </PopoverContent>
       </Popover>
 
-      <Select value={timeValue} onValueChange={onTimeChange}>
+      <Select value={timeValue} onValueChange={(t) => {
+        if (!isTimeDisabled(t)) onTimeChange(t)
+      }}>
         <SelectTrigger className="w-[110px]">
           <Clock className="mr-2 h-4 w-4" />
           <SelectValue placeholder="เวลา" />
         </SelectTrigger>
         <SelectContent>
-          {TIME_SLOTS.map((time) => (
-            <SelectItem key={time} value={time}>
-              {time} น.
-            </SelectItem>
-          ))}
+          {TIME_SLOTS.map((time) => {
+            const disabled = isTimeDisabled(time)
+            return (
+              <SelectItem
+                key={time}
+                value={time}
+                disabled={disabled}
+                className={disabled ? "opacity-40 cursor-not-allowed" : ""}
+              >
+                {time} น.
+              </SelectItem>
+            )
+          })}
         </SelectContent>
       </Select>
     </div>

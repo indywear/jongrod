@@ -113,11 +113,11 @@ export default function ApiKeysPage() {
     if (permLogin) permissions.push("login")
 
     if (!name.trim()) {
-      setError("Please enter a name for the API key")
+      setError("กรุณากรอกชื่อ API Key")
       return
     }
     if (permissions.length === 0) {
-      setError("Please select at least one permission")
+      setError("กรุณาเลือกสิทธิ์อย่างน้อย 1 รายการ")
       return
     }
 
@@ -149,7 +149,7 @@ export default function ApiKeysPage() {
       }
     } catch (err) {
       console.error("Failed to create API key:", err)
-      setError("Network error. Please try again.")
+      setError("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่")
     } finally {
       setCreating(false)
     }
@@ -169,7 +169,7 @@ export default function ApiKeysPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this API key?")) return
+    if (!confirm("ต้องการลบ API Key นี้ใช่ไหม?")) return
     try {
       const res = await fetch(`/api/admin/api-keys/${id}`, {
         method: "DELETE",
@@ -197,7 +197,7 @@ export default function ApiKeysPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">API Keys</h1>
+        <h1 className="text-3xl font-bold">จัดการ API Keys</h1>
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           setDialogOpen(open)
           if (!open) { setNewKeyResult(null); setError(null) }
@@ -205,13 +205,13 @@ export default function ApiKeysPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Create API Key
+              สร้าง API Key
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {newKeyResult ? "API Key Created" : "Create New API Key"}
+                {newKeyResult ? "สร้าง API Key สำเร็จ" : "สร้าง API Key ใหม่"}
               </DialogTitle>
             </DialogHeader>
 
@@ -219,7 +219,7 @@ export default function ApiKeysPage() {
               <div className="space-y-4">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm font-medium text-yellow-800 mb-2">
-                    Save this key now. It will not be shown again!
+                    บันทึก Key นี้ไว้ตอนนี้เลย จะไม่แสดงอีกครั้ง!
                   </p>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 bg-white p-2 rounded border text-sm break-all">
@@ -242,29 +242,29 @@ export default function ApiKeysPage() {
                   setDialogOpen(false)
                   setNewKeyResult(null)
                 }}>
-                  Done
+                  เสร็จสิ้น
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">ชื่อ Key</Label>
                   <Input
                     id="name"
-                    placeholder="e.g. Mobile App, Partner ABC"
+                    placeholder="เช่น Mobile App, Partner ABC"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="partner">Link to Partner (optional)</Label>
+                  <Label htmlFor="partner">ผูกกับ Partner (ไม่บังคับ)</Label>
                   <Select value={partnerId} onValueChange={setPartnerId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="No partner" />
+                      <SelectValue placeholder="ไม่ผูก Partner" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No partner</SelectItem>
+                      <SelectItem value="none">ไม่ผูก Partner</SelectItem>
                       {partners.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.name}
@@ -275,7 +275,7 @@ export default function ApiKeysPage() {
                 </div>
 
                 <div>
-                  <Label>Permissions</Label>
+                  <Label>สิทธิ์การใช้งาน</Label>
                   <div className="flex gap-4 mt-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -319,7 +319,7 @@ export default function ApiKeysPage() {
                   disabled={creating || !name.trim()}
                 >
                   {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Generate Key
+                  สร้าง Key
                 </Button>
               </div>
             )}
@@ -338,19 +338,19 @@ export default function ApiKeysPage() {
           {apiKeys.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <KeyRound className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No API keys yet. Create one to get started.</p>
+              <p>ยังไม่มี API Key สร้างใหม่เพื่อเริ่มต้นใช้งาน</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>ชื่อ</TableHead>
                   <TableHead>Key Prefix</TableHead>
                   <TableHead>Partner</TableHead>
-                  <TableHead>Permissions</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Used</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>สิทธิ์</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead>ใช้ล่าสุด</TableHead>
+                  <TableHead>จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -384,13 +384,13 @@ export default function ApiKeysPage() {
                             : "bg-red-100 text-red-800"
                         }
                       >
-                        {key.isActive ? "Active" : "Disabled"}
+                        {key.isActive ? "ใช้งาน" : "ปิดใช้งาน"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {key.lastUsedAt
                         ? new Date(key.lastUsedAt).toLocaleDateString()
-                        : "Never"}
+                        : "ยังไม่เคยใช้"}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
@@ -427,7 +427,7 @@ export default function ApiKeysPage() {
       {/* Usage guide */}
       <Card>
         <CardHeader>
-          <CardTitle>How to use API Keys</CardTitle>
+          <CardTitle>วิธีใช้งาน API Keys</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

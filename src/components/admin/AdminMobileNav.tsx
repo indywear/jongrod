@@ -47,7 +47,7 @@ export function AdminMobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-[280px] p-0">
         <div className="p-4 border-b">
-          <span className="font-bold text-lg">Admin Menu</span>
+          <span className="font-bold text-lg">เมนู Admin</span>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (
