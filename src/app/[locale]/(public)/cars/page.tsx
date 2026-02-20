@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { Link } from "@/i18n/navigation"
@@ -86,6 +86,53 @@ export default function CarsPage() {
   const [availableYears, setAvailableYears] = useState<YearInfo[]>([])
 
   const [activeSearch, setActiveSearch] = useState<string>(searchParams.get("search") || "")
+
+  // Autocomplete dropdown
+  const [suggestions, setSuggestions] = useState<CarData[]>([])
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Fetch suggestions as user types
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (searchText.trim().length < 1) {
+      setSuggestions([])
+      setShowDropdown(false)
+      return
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setLoadingSuggestions(true)
+      try {
+        const res = await fetch(`/api/cars?search=${encodeURIComponent(searchText.trim())}&limit=6`)
+        const data = await res.json()
+        setSuggestions(data.cars || [])
+        setShowDropdown(true)
+      } catch {
+        setSuggestions([])
+      } finally {
+        setLoadingSuggestions(false)
+      }
+    }, 300)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchText])
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const fetchCars = useCallback(async () => {
     setLoading(true)
@@ -357,19 +404,116 @@ export default function CarsPage() {
           <p className="text-white/80 mb-8 text-lg">
             {t("home.heroSubtitle")}
           </p>
-          <div className="max-w-xl mx-auto flex gap-2">
-            <Input
-              type="text"
-              placeholder={t("home.searchPlaceholder")}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="bg-white text-foreground h-12 text-base"
-            />
-            <Button size="lg" variant="secondary" onClick={handleSearch} className="h-12 px-6">
-              <Search className="h-5 w-5 mr-2" />
-              {t("common.search")}
-            </Button>
+          <div className="max-w-2xl mx-auto relative" ref={searchContainerRef}>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  type="text"
+                  placeholder={t("home.searchPlaceholder")}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setShowDropdown(false)
+                      handleSearch()
+                    }
+                    if (e.key === "Escape") setShowDropdown(false)
+                  }}
+                  onFocus={() => { if (suggestions.length > 0) setShowDropdown(true) }}
+                  className="bg-white text-foreground h-12 text-base pl-11"
+                />
+                {searchText && (
+                  <button
+                    onClick={() => { setSearchText(""); setSuggestions([]); setShowDropdown(false) }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <Button size="lg" variant="secondary" onClick={() => { setShowDropdown(false); handleSearch() }} className="h-12 px-6">
+                <Search className="h-5 w-5 mr-2" />
+                {t("common.search")}
+              </Button>
+            </div>
+
+            {/* Autocomplete Dropdown */}
+            {showDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden max-h-[480px] overflow-y-auto">
+                {loadingSuggestions ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                    <span className="text-sm text-muted-foreground">{t("common.loading")}...</span>
+                  </div>
+                ) : suggestions.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Car className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                    <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
+                  </div>
+                ) : (
+                  <>
+                    {suggestions.map((car) => (
+                      <Link
+                        key={car.id}
+                        href={`/cars/${car.id}`}
+                        onClick={() => setShowDropdown(false)}
+                        className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 group"
+                      >
+                        {/* Car thumbnail */}
+                        <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">
+                          {car.images && car.images.length > 0 && car.images[0] ? (
+                            <Image
+                              src={car.images[0]}
+                              alt={`${car.brand} ${car.model}`}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                              unoptimized
+                              onError={(e) => { e.currentTarget.style.display = "none" }}
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Car className="h-6 w-6 text-gray-300" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Car info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {car.brand} {car.model}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <span>{car.year}</span>
+                            <span className="text-gray-300">|</span>
+                            <span>{t(`cars.fuelType.${car.fuelType}`)}</span>
+                            <span className="text-gray-300">|</span>
+                            <span>{t(`cars.transmission.${car.transmission}`)}</span>
+                          </div>
+                        </div>
+
+                        {/* Price + Category */}
+                        <div className="flex-shrink-0 text-right">
+                          <p className="font-bold text-primary text-lg">
+                            {Number(car.pricePerDay).toLocaleString()}
+                          </p>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {getCategoryLabel(car.category)}
+                          </Badge>
+                        </div>
+                      </Link>
+                    ))}
+                    {/* View all results button */}
+                    <button
+                      onClick={() => { setShowDropdown(false); handleSearch() }}
+                      className="w-full py-3 text-center text-sm font-medium text-primary hover:bg-primary/5 transition-colors border-t"
+                    >
+                      {t("common.search")} &quot;{searchText}&quot; →
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
