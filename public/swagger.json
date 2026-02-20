@@ -1,0 +1,4483 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Jongrod API",
+    "version": "2.0.0",
+    "description": "Comprehensive API Documentation for Jongrod Car Rental Platform.\n\n## Authentication\n- **Cookie Session**: Used by the website (login via `/api/auth/login`)\n- **API Key**: External API access via `X-API-Key` header\n- **Bearer JWT**: External user auth via `Authorization: Bearer <token>`\n\n## External API (v1)\nAll `/api/v1/*` endpoints require an `X-API-Key` header.\nEndpoints that access user data also require a Bearer JWT token.",
+    "contact": {
+      "name": "Jongrod Support",
+      "email": "support@jongrod.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "User authentication (login, register, logout)"
+    },
+    {
+      "name": "Cars",
+      "description": "Public car listings"
+    },
+    {
+      "name": "Bookings",
+      "description": "Booking management"
+    },
+    {
+      "name": "Documents",
+      "description": "Document upload and management"
+    },
+    {
+      "name": "Customer",
+      "description": "Customer profile and data"
+    },
+    {
+      "name": "Partner",
+      "description": "Partner dashboard endpoints"
+    },
+    {
+      "name": "Admin",
+      "description": "Platform admin endpoints"
+    },
+    {
+      "name": "Admin Banners",
+      "description": "CMS banner management"
+    },
+    {
+      "name": "API Keys",
+      "description": "API key management (admin)"
+    },
+    {
+      "name": "External Auth",
+      "description": "External API authentication (v1)"
+    },
+    {
+      "name": "External Cars",
+      "description": "External car listing API (v1)"
+    },
+    {
+      "name": "External Bookings",
+      "description": "External booking API (v1)"
+    },
+    {
+      "name": "External Partner",
+      "description": "External partner data API (v1)"
+    },
+    {
+      "name": "Content",
+      "description": "Pages, articles, popups"
+    },
+    {
+      "name": "Banners",
+      "description": "Public banner endpoints"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "CookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jongrod_session",
+        "description": "Session cookie set by /api/auth/login"
+      },
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for external access. Get one from Admin > API Keys."
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token from /api/v1/auth/login"
+      }
+    },
+    "schemas": {
+      "Banner": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "linkUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "HOMEPAGE_HERO",
+              "HOMEPAGE_MIDDLE",
+              "LISTING_TOP",
+              "POPUP"
+            ]
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Car": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "licensePlate": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "SEDAN",
+              "SUV",
+              "VAN",
+              "PICKUP",
+              "LUXURY",
+              "COMPACT",
+              "MOTORCYCLE"
+            ]
+          },
+          "transmission": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "fuelType": {
+            "type": "string",
+            "enum": [
+              "PETROL",
+              "DIESEL",
+              "HYBRID",
+              "EV"
+            ]
+          },
+          "seats": {
+            "type": "integer"
+          },
+          "doors": {
+            "type": "integer"
+          },
+          "pricePerDay": {
+            "type": "number"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rentalStatus": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "MAINTENANCE"
+            ]
+          },
+          "approvalStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "partner": {
+            "$ref": "#/components/schemas/Partner"
+          }
+        }
+      },
+      "Partner": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "contactEmail": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "commissionRate": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "bookingNumber": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "customerEmail": {
+            "type": "string"
+          },
+          "customerPhone": {
+            "type": "string"
+          },
+          "customerNote": {
+            "type": "string",
+            "nullable": true
+          },
+          "pickupDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "returnDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupLocation": {
+            "type": "string"
+          },
+          "returnLocation": {
+            "type": "string"
+          },
+          "totalPrice": {
+            "type": "number"
+          },
+          "leadStatus": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "CLAIMED",
+              "PICKUP",
+              "ACTIVE",
+              "RETURN",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "car": {
+            "$ref": "#/components/schemas/Car"
+          },
+          "partner": {
+            "$ref": "#/components/schemas/Partner"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER",
+              "PARTNER_ADMIN",
+              "PLATFORM_OWNER"
+            ]
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UserRegister": {
+        "type": "object",
+        "required": [
+          "password",
+          "firstName",
+          "lastName",
+          "lastName",
+          "phone"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email (required if phone is not provided)",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "description": "Password (min 8 chars, must include uppercase, lowercase, and digit)",
+            "example": "MyPassword123"
+          },
+          "firstName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "First name (Thai or English letters only)",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Last name (Thai or English letters only)",
+            "example": "Doe"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^0[689]\\d{8}$",
+            "description": "Thai phone number (required if email is not provided)",
+            "example": "0812345678"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ID_CARD",
+              "DRIVER_LICENSE"
+            ]
+          },
+          "documentNumber": {
+            "type": "string"
+          },
+          "frontImageUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "partnerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "read",
+                "write",
+                "login"
+              ]
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "security": [],
+  "paths": {
+    "/api/admin/api-keys/{id}": {
+      "patch": {
+        "summary": "Update an API key",
+        "description": "Update API key name, permissions, active status, or expiry.",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API key updated"
+          },
+          "404": {
+            "description": "API key not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an API key",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key deleted"
+          },
+          "404": {
+            "description": "API key not found"
+          }
+        }
+      }
+    },
+    "/api/admin/api-keys": {
+      "get": {
+        "summary": "List all API keys",
+        "description": "Returns all API keys (admin only). Shows prefix, not full key.",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of API keys"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new API key",
+        "description": "Generate a new API key. The full key is only shown once in the response.",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "permissions"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "partnerId": {
+                    "type": "string"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "read",
+                        "write",
+                        "login"
+                      ]
+                    }
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created (full key shown only once)"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/admin/blacklist": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List blacklisted users",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of blacklisted users"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Add user to blacklist",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "documentNumber",
+                  "fullName",
+                  "reason"
+                ],
+                "properties": {
+                  "documentNumber": {
+                    "type": "string"
+                  },
+                  "fullName": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User added to blacklist"
+          },
+          "400": {
+            "description": "Validation error or already blacklisted"
+          }
+        }
+      }
+    },
+    "/api/admin/bookings/recent": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List recent bookings",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of today's most recent bookings (up to 10)"
+          }
+        }
+      }
+    },
+    "/api/admin/cars/{id}/approval": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Approve or reject a car",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "APPROVED",
+                      "REJECTED"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Car approval status updated"
+          },
+          "400": {
+            "description": "Invalid status"
+          },
+          "404": {
+            "description": "Car not found"
+          }
+        }
+      }
+    },
+    "/api/admin/cars/pending": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List cars pending approval",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cars with PENDING approval status"
+          }
+        }
+      }
+    },
+    "/api/admin/cars": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List all cars (admin view)",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cars with pagination"
+          }
+        }
+      }
+    },
+    "/api/admin/cms/banners/{id}": {
+      "patch": {
+        "tags": [
+          "Admin Banners"
+        ],
+        "summary": "Update banner",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "linkUrl": {
+                    "type": "string"
+                  },
+                  "position": {
+                    "type": "string",
+                    "enum": [
+                      "HOMEPAGE_HERO",
+                      "HOMEPAGE_MIDDLE",
+                      "LISTING_TOP",
+                      "POPUP"
+                    ]
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Banner updated successfully"
+          },
+          "400": {
+            "description": "Invalid position"
+          },
+          "404": {
+            "description": "Banner not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin Banners"
+        ],
+        "summary": "Delete banner",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Banner deleted successfully"
+          },
+          "404": {
+            "description": "Banner not found"
+          }
+        }
+      }
+    },
+    "/api/admin/cms/banners": {
+      "get": {
+        "tags": [
+          "Admin Banners"
+        ],
+        "summary": "List all banners (admin)",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all banners ordered by position and sort order"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin Banners"
+        ],
+        "summary": "Create a new banner",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "image",
+                  "position"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "linkUrl": {
+                    "type": "string"
+                  },
+                  "position": {
+                    "type": "string",
+                    "enum": [
+                      "HOMEPAGE_HERO",
+                      "HOMEPAGE_MIDDLE",
+                      "LISTING_TOP",
+                      "POPUP"
+                    ]
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Banner created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/admin/commissions/{id}": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Update commission status (mark as paid)",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "PAID"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Commission marked as paid"
+          },
+          "400": {
+            "description": "Invalid status or already paid"
+          },
+          "404": {
+            "description": "Commission log not found"
+          }
+        }
+      }
+    },
+    "/api/admin/commissions": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List commission logs",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PAID"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "partnerId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of commission logs with pagination and summary"
+          }
+        }
+      }
+    },
+    "/api/admin/documents/{id}/review": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Review document (admin)",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "APPROVED",
+                      "REJECTED"
+                    ]
+                  },
+                  "rejectionReason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document reviewed successfully"
+          },
+          "400": {
+            "description": "Invalid status or missing rejection reason"
+          },
+          "404": {
+            "description": "Document not found"
+          }
+        }
+      }
+    },
+    "/api/admin/documents/pending": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List pending documents (admin)",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of documents with PENDING status"
+          }
+        }
+      }
+    },
+    "/api/admin/partners/{id}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get partner details",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partner details"
+          },
+          "404": {
+            "description": "Partner not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Update partner",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "contactEmail": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "commissionRate": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ACTIVE",
+                      "SUSPENDED"
+                    ]
+                  },
+                  "telegramChatId": {
+                    "type": "string"
+                  },
+                  "minAdvanceHours": {
+                    "type": "number"
+                  },
+                  "operatingHours": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated partner"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Partner not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Delete partner",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partner deleted successfully"
+          },
+          "404": {
+            "description": "Partner not found"
+          }
+        }
+      }
+    },
+    "/api/admin/partners": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List all partners",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of partners with pagination"
+          }
+        }
+      }
+    },
+    "/api/articles/{slug}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Get article by slug",
+        "description": "Retrieves a single published article by its URL slug, including author information.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Article URL slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "article": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Article not found"
+          }
+        }
+      }
+    },
+    "/api/articles": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List published articles",
+        "description": "Returns a paginated list of published articles. Supports filtering by category.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 12,
+              "maximum": 50
+            },
+            "description": "Number of articles per page (max 50)"
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by article category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of articles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "articles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "titleTh": {
+                            "type": "string"
+                          },
+                          "titleEn": {
+                            "type": "string"
+                          },
+                          "excerptTh": {
+                            "type": "string"
+                          },
+                          "excerptEn": {
+                            "type": "string"
+                          },
+                          "featuredImage": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string"
+                          },
+                          "publishedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "author": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/external-register": {
+      "post": {
+        "summary": "Register a new user from external source",
+        "description": "Creates a new customer account. Returns the created user's ID.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegister"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User registered successfully"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "redirectUrl": {
+                      "type": "string",
+                      "description": "URL to redirect the user for auto-login"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or User already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Request password reset email",
+        "description": "Sends a password reset email to the specified address if an account exists. Always returns success to prevent user enumeration. Rate limited to 3 attempts per minute per IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 200,
+                    "description": "Email address to send the reset link to",
+                    "example": "user@example.com"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "maxLength": 5,
+                    "description": "Locale for the reset email (defaults to \"th\")",
+                    "example": "th"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email sent (always returns success to prevent enumeration)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "If an account exists with this email, a reset link has been sent."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid email format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login with email/phone and password",
+        "description": "Authenticates a user using email or phone number along with a password. Sets a session cookie on success. Rate limited to 5 attempts per minute per IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User email address (required if phone is not provided)",
+                    "example": "user@example.com"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "minLength": 9,
+                    "maxLength": 15,
+                    "description": "User phone number (required if email is not provided)",
+                    "example": "0812345678"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "User password",
+                    "example": "MyPassword123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful. Returns user data and sets a session cookie.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Session cookie",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "phone": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "avatarUrl": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "partnerId": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials or account is blacklisted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many login attempts. Rate limited.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logout and clear session",
+        "description": "Logs out the current user by clearing the session cookie.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Get current logged-in user",
+        "description": "Returns the currently authenticated user's profile data based on the session cookie.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the authenticated user object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "phone": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "avatarUrl": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated or session expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Not authenticated"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register a new user account",
+        "description": "Creates a new user account with email or phone, password, and name. Automatically logs in the user by setting a session cookie. Rate limited to 3 attempts per minute per IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegister"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration successful. Returns user data and sets a session cookie.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Session cookie",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "phone": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid email, weak password, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email or phone number already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-sso": {
+      "post": {
+        "summary": "Verify SSO Token",
+        "description": "Validates a token generated by external-register and returns user data for auto-login.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token valid, returns user data"
+          },
+          "401": {
+            "description": "Token expired or invalid"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/banners": {
+      "get": {
+        "summary": "Get active banners",
+        "description": "Retrieve a list of active banners, optionally filtered by position.",
+        "tags": [
+          "Banners"
+        ],
+        "parameters": [
+          {
+            "name": "position",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HOMEPAGE_HERO",
+                "HOMEPAGE_MIDDLE",
+                "LISTING_TOP",
+                "POPUP"
+              ]
+            },
+            "description": "Filter banners by display position"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of active banners",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "banners": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Banner"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/bookings/{id}": {
+      "get": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Get booking details",
+        "description": "Retrieves booking details by ID. Returns full details for admins, partners, and the booking owner. Returns limited info for unauthenticated users.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "booking": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Booking not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Update booking",
+        "description": "Updates booking status. Admins and partners can set any valid status. Customers can only cancel their own bookings.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "leadStatus"
+                ],
+                "properties": {
+                  "leadStatus": {
+                    "type": "string",
+                    "enum": [
+                      "NEW",
+                      "CLAIMED",
+                      "PICKUP",
+                      "ACTIVE",
+                      "RETURN",
+                      "COMPLETED",
+                      "CANCELLED"
+                    ],
+                    "description": "New booking status"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Cancellation reason (used when status is CANCELLED)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Booking updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "booking": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status or invalid status transition"
+          },
+          "403": {
+            "description": "Not authorized to modify this booking"
+          },
+          "404": {
+            "description": "Booking not found"
+          }
+        }
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Create a new booking",
+        "description": "Creates a new car rental booking. Validates date ranges, checks car availability, detects overlapping bookings, and reserves the car with a 15-minute hold.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "carId",
+                  "customerName",
+                  "customerPhone",
+                  "pickupDatetime",
+                  "returnDatetime",
+                  "totalPrice"
+                ],
+                "properties": {
+                  "carId": {
+                    "type": "string",
+                    "description": "The ID of the car to book"
+                  },
+                  "customerName": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Full name of the customer"
+                  },
+                  "customerEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Customer email address (optional)"
+                  },
+                  "customerPhone": {
+                    "type": "string",
+                    "minLength": 9,
+                    "maxLength": 20,
+                    "description": "Customer phone number"
+                  },
+                  "customerNote": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "Additional notes from the customer"
+                  },
+                  "pickupDatetime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Pickup date and time (ISO 8601)"
+                  },
+                  "returnDatetime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Return date and time (ISO 8601)"
+                  },
+                  "pickupLocation": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Pickup location"
+                  },
+                  "returnLocation": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Return location"
+                  },
+                  "totalPrice": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "description": "Total rental price"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID (optional, auto-detected from session)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "booking": {
+                      "type": "object"
+                    },
+                    "bookingNumber": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid input, date format, or price mismatch)"
+          },
+          "409": {
+            "description": "Car is currently reserved by another user or has overlapping bookings"
+          }
+        }
+      }
+    },
+    "/api/cars/{id}/lock": {
+      "post": {
+        "tags": [
+          "Cars"
+        ],
+        "summary": "Lock car for booking",
+        "description": "Acquires a 5-minute temporary lock on a car to prevent concurrent bookings. Uses atomic database operations to prevent race conditions. The same session can refresh an existing lock.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Car ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sessionId"
+                ],
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "minLength": 10,
+                    "description": "Unique session identifier for the booking flow"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lock acquired successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "locked": {
+                      "type": "boolean"
+                    },
+                    "lockedByOther": {
+                      "type": "boolean"
+                    },
+                    "lockedUntil": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid session ID"
+          },
+          "404": {
+            "description": "Car not found"
+          },
+          "409": {
+            "description": "Car is locked by another user"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Cars"
+        ],
+        "summary": "Unlock car",
+        "description": "Releases the lock on a car. Only the session that acquired the lock can release it. Idempotent - returns success if the car is already unlocked.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Car ID"
+          },
+          {
+            "in": "query",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 10
+            },
+            "description": "Session ID that holds the lock"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Car unlocked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "unlocked": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid session ID"
+          },
+          "403": {
+            "description": "Not authorized to unlock this car (locked by another session)"
+          },
+          "404": {
+            "description": "Car not found"
+          }
+        }
+      }
+    },
+    "/api/cars/{id}": {
+      "get": {
+        "summary": "Get car details",
+        "description": "Retrieve detailed information about a specific car by its ID.",
+        "tags": [
+          "Cars"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Car ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Car details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "car": {
+                      "$ref": "#/components/schemas/Car"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Car not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/cars": {
+      "get": {
+        "summary": "List all cars",
+        "description": "Retrieve a paginated list of available cars with optional filters.",
+        "tags": [
+          "Cars"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SEDAN",
+                "SUV",
+                "VAN",
+                "PICKUP",
+                "LUXURY",
+                "COMPACT",
+                "MOTORCYCLE"
+              ]
+            },
+            "description": "Filter by car category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cars",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cars": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Car"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/contact": {
+      "post": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Send contact form message",
+        "description": "Submits a contact form message. Rate limited to 3 requests per minute per IP. Sends email via Resend if configured, otherwise logs to console.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "subject",
+                  "message"
+                ],
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 200
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 20
+                  },
+                  "subject": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "429": {
+            "description": "Too many requests (rate limited)"
+          }
+        }
+      }
+    },
+    "/api/customer/bookings": {
+      "get": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "List customer's bookings",
+        "description": "Retrieves all bookings for the authenticated customer. Supports filtering by status.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID (defaults to authenticated user)"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "NEW",
+                "CLAIMED",
+                "PICKUP",
+                "ACTIVE",
+                "RETURN",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            },
+            "description": "Filter by booking status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of customer bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "bookingNumber": {
+                            "type": "string"
+                          },
+                          "car": {
+                            "type": "object"
+                          },
+                          "pickupDate": {
+                            "type": "string"
+                          },
+                          "pickupTime": {
+                            "type": "string"
+                          },
+                          "returnDate": {
+                            "type": "string"
+                          },
+                          "returnTime": {
+                            "type": "string"
+                          },
+                          "totalPrice": {
+                            "type": "number"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "403": {
+            "description": "Not authorized to view these bookings"
+          }
+        }
+      }
+    },
+    "/api/customer/documents": {
+      "get": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "List customer's documents",
+        "description": "Retrieves all uploaded documents (ID cards, driver licenses) for the authenticated customer.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID (defaults to authenticated user)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of customer documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "documents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "403": {
+            "description": "Not authorized to view these documents"
+          }
+        }
+      }
+    },
+    "/api/customer/profile/password": {
+      "post": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Change password",
+        "description": "Changes the authenticated user's password. Requires the current password for verification. New password must contain at least 8 characters with uppercase, lowercase, and a digit.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "description": "The user's current password"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "New password (must contain uppercase, lowercase, and a digit)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or current password is incorrect"
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/customer/profile": {
+      "get": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Get customer profile",
+        "description": "Retrieves the authenticated user's profile information.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "avatarUrl": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "languagePreference": {
+                          "type": "string"
+                        },
+                        "isEmailVerified": {
+                          "type": "boolean"
+                        },
+                        "isPhoneVerified": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Update customer profile",
+        "description": "Updates the authenticated user's profile. Supports updating name, phone, and language preference.",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^0[689]\\d{8}$",
+                    "description": "Thai phone number format",
+                    "nullable": true
+                  },
+                  "languagePreference": {
+                    "type": "string",
+                    "enum": [
+                      "th",
+                      "en"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "409": {
+            "description": "Phone number already in use"
+          }
+        }
+      }
+    },
+    "/api/documents/upload": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Upload ID card and driver license documents",
+        "description": "Uploads front ID card and driver license images for a booking. Files must be JPEG, PNG, or WebP and under 10MB each. Creates document records linked to the user and sends a Telegram notification to the partner.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bookingId",
+                  "customerName",
+                  "idCardFront",
+                  "driverLicense"
+                ],
+                "properties": {
+                  "bookingId": {
+                    "type": "string",
+                    "description": "The booking ID to attach documents to"
+                  },
+                  "customerName": {
+                    "type": "string",
+                    "description": "Customer name for file naming"
+                  },
+                  "idCardFront": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Front image of the ID card (JPEG, PNG, or WebP, max 10MB)"
+                  },
+                  "driverLicense": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Driver license image (JPEG, PNG, or WebP, max 10MB)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Documents uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "documents": {
+                      "type": "object",
+                      "properties": {
+                        "idCardFront": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "driverLicense": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    },
+                    "documentIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required fields or invalid file type/size"
+          }
+        }
+      }
+    },
+    "/api/pages/{slug}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Get page by slug",
+        "description": "Retrieves a single published page by its URL slug.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Page URL slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      }
+    },
+    "/api/partner/cars": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "List partner's cars",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partnerId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Partner ID (defaults to authenticated user's partner)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Number of items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cars with pagination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cars": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - not authenticated or not a partner"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "Add a new car",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "brand",
+                  "model",
+                  "year",
+                  "licensePlate",
+                  "category",
+                  "transmission",
+                  "fuelType",
+                  "seats",
+                  "doors",
+                  "pricePerDay"
+                ],
+                "properties": {
+                  "brand": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "year": {
+                    "type": "integer"
+                  },
+                  "licensePlate": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "SEDAN",
+                      "SUV",
+                      "VAN",
+                      "PICKUP",
+                      "LUXURY",
+                      "COMPACT",
+                      "MOTORCYCLE"
+                    ]
+                  },
+                  "transmission": {
+                    "type": "string",
+                    "enum": [
+                      "AUTO",
+                      "MANUAL"
+                    ]
+                  },
+                  "fuelType": {
+                    "type": "string",
+                    "enum": [
+                      "PETROL",
+                      "DIESEL",
+                      "HYBRID",
+                      "EV"
+                    ]
+                  },
+                  "seats": {
+                    "type": "integer"
+                  },
+                  "doors": {
+                    "type": "integer"
+                  },
+                  "features": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "pricePerDay": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Car created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "car": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized - not authenticated or not a partner"
+          },
+          "409": {
+            "description": "License plate already exists"
+          }
+        }
+      }
+    },
+    "/api/partner/documents/{id}/review": {
+      "patch": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "Review a document (approve/reject)",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "APPROVED",
+                      "REJECTED"
+                    ],
+                    "description": "Review decision"
+                  },
+                  "rejectionReason": {
+                    "type": "string",
+                    "description": "Required when status is REJECTED"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document reviewed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "document": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status or missing rejection reason"
+          },
+          "403": {
+            "description": "Not authorized to review this document"
+          },
+          "404": {
+            "description": "Document not found"
+          }
+        }
+      }
+    },
+    "/api/partner/documents/pending": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "List pending documents for review",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partnerId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Partner ID (defaults to authenticated user's partner)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pending documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "documents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PENDING"
+                            ]
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "firstName": {
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "phone": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - not authenticated or not a partner"
+          }
+        }
+      }
+    },
+    "/api/partner/leads/{id}/status": {
+      "patch": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "Update booking lead status",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "NEW",
+                      "CLAIMED",
+                      "PICKUP",
+                      "ACTIVE",
+                      "RETURN",
+                      "COMPLETED",
+                      "CANCELLED"
+                    ],
+                    "description": "New status for the booking lead"
+                  },
+                  "note": {
+                    "type": "string",
+                    "description": "Optional note (used as cancellation reason when status is CANCELLED)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Booking lead status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "booking": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value or invalid status transition"
+          },
+          "404": {
+            "description": "Booking not found"
+          }
+        }
+      }
+    },
+    "/api/partner/leads": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "List partner's booking leads",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NEW",
+                "CLAIMED",
+                "PICKUP",
+                "ACTIVE",
+                "RETURN",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            },
+            "description": "Filter leads by status"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Number of items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of booking leads with pagination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "leads": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - not authenticated or not a partner"
+          }
+        }
+      }
+    },
+    "/api/partner/settings": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "Get partner settings",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partnerId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Partner ID (defaults to authenticated user's partner)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partner settings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partner": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "contactEmail": {
+                          "type": "string"
+                        },
+                        "minAdvanceHours": {
+                          "type": "integer"
+                        },
+                        "telegramChatId": {
+                          "type": "string"
+                        },
+                        "operatingHours": {
+                          "type": "object"
+                        },
+                        "pickupLocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "logoUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - not authenticated or not a partner"
+          },
+          "404": {
+            "description": "Partner not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Partner"
+        ],
+        "summary": "Update partner settings",
+        "security": [
+          {
+            "CookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "contactEmail": {
+                    "type": "string"
+                  },
+                  "minAdvanceHours": {
+                    "type": "integer"
+                  },
+                  "telegramChatId": {
+                    "type": "string"
+                  },
+                  "operatingHours": {
+                    "type": "object"
+                  },
+                  "pickupLocations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Partner settings updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partner": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - not authenticated or not a partner"
+          },
+          "404": {
+            "description": "Partner not found"
+          }
+        }
+      }
+    },
+    "/api/popup": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Get active popup banners",
+        "description": "Returns the currently active popup banner based on date range and sort order. Returns null if no active popup is available.",
+        "responses": {
+          "200": {
+            "description": "Active popup banner (or null if none active)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "popup": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "linkUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login via API (external)",
+        "description": "Authenticate a user using API key + credentials. Returns a JWT token for subsequent requests.",
+        "tags": [
+          "External Auth"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials or API key"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Get current user info",
+        "description": "Returns user profile from JWT token.",
+        "tags": [
+          "External Auth"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "partnerId": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing token"
+          }
+        }
+      }
+    },
+    "/api/v1/bookings": {
+      "get": {
+        "summary": "List user's bookings",
+        "description": "Returns bookings for the authenticated user (from JWT token).",
+        "tags": [
+          "External Bookings"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NEW",
+                "CLAIMED",
+                "PICKUP",
+                "ACTIVE",
+                "RETURN",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bookings"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a booking",
+        "description": "Create a new car booking for the authenticated user.",
+        "tags": [
+          "External Bookings"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "carId",
+                  "customerName",
+                  "customerPhone",
+                  "pickupDatetime",
+                  "returnDatetime"
+                ],
+                "properties": {
+                  "carId": {
+                    "type": "string"
+                  },
+                  "customerName": {
+                    "type": "string"
+                  },
+                  "customerPhone": {
+                    "type": "string"
+                  },
+                  "customerEmail": {
+                    "type": "string"
+                  },
+                  "customerNote": {
+                    "type": "string"
+                  },
+                  "pickupDatetime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "returnDatetime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "pickupLocation": {
+                    "type": "string"
+                  },
+                  "returnLocation": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "409": {
+            "description": "Car not available"
+          }
+        }
+      }
+    },
+    "/api/v1/cars/{id}": {
+      "get": {
+        "summary": "Get car details (external API)",
+        "description": "Returns full details of a specific car including rental status and partner info.",
+        "tags": [
+          "External Cars"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Car details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "car": {
+                      "$ref": "#/components/schemas/Car"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing API key"
+          },
+          "404": {
+            "description": "Car not found"
+          }
+        }
+      }
+    },
+    "/api/v1/cars": {
+      "get": {
+        "summary": "List cars (external API)",
+        "description": "Retrieve a paginated list of cars. Supports filtering by rentalStatus (AVAILABLE/RENTED/MAINTENANCE), category, transmission, fuelType, price range, and search.",
+        "tags": [
+          "External Cars"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rentalStatus",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "RENTED",
+                "MAINTENANCE"
+              ]
+            },
+            "description": "Filter by rental status (default AVAILABLE)"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SEDAN",
+                "SUV",
+                "VAN",
+                "PICKUP",
+                "LUXURY",
+                "COMPACT",
+                "MOTORCYCLE"
+              ]
+            }
+          },
+          {
+            "name": "transmission",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AUTO",
+                "MANUAL"
+              ]
+            }
+          },
+          {
+            "name": "fuelType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PETROL",
+                "DIESEL",
+                "HYBRID",
+                "EV"
+              ]
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search by brand or model"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "price_asc",
+                "price_desc",
+                "newest"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cars",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cars": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Car"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing API key"
+          }
+        }
+      }
+    },
+    "/api/v1/partner/cars": {
+      "get": {
+        "summary": "List partner's cars",
+        "description": "Returns all cars belonging to the partner linked to the API key. Shows all rental statuses (AVAILABLE/RENTED/MAINTENANCE).",
+        "tags": [
+          "External Partner"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rentalStatus",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "RENTED",
+                "MAINTENANCE"
+              ]
+            }
+          },
+          {
+            "name": "approvalStatus",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of partner's cars"
+          },
+          "401": {
+            "description": "Invalid API key"
+          },
+          "403": {
+            "description": "API key not linked to a partner"
+          }
+        }
+      }
+    },
+    "/api/v1/partner/leads": {
+      "get": {
+        "summary": "List partner's booking leads",
+        "description": "Returns all booking leads for the partner linked to the API key.",
+        "tags": [
+          "External Partner"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NEW",
+                "CLAIMED",
+                "PICKUP",
+                "ACTIVE",
+                "RETURN",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of booking leads"
+          },
+          "401": {
+            "description": "Invalid API key"
+          },
+          "403": {
+            "description": "API key not linked to a partner"
+          }
+        }
+      }
+    }
+  }
+}
