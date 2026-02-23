@@ -130,8 +130,8 @@ export default function CarApprovalPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t("admin.carApproval")}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold">{t("admin.carApproval")}</h1>
         <Badge variant="outline">{cars.length} รอตรวจสอบ</Badge>
       </div>
 
@@ -143,7 +143,7 @@ export default function CarApprovalPage() {
               <p>ไม่มีรถรอตรวจสอบ</p>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>รถ</TableHead>
@@ -152,7 +152,7 @@ export default function CarApprovalPage() {
                   <TableHead>ราคา/วัน</TableHead>
                   <TableHead>Partner</TableHead>
                   <TableHead>ส่งเมื่อ</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -224,7 +224,7 @@ export default function CarApprovalPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

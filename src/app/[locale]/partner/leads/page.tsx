@@ -355,13 +355,13 @@ export default function PartnerLeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t("partner.leads")}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold">{t("partner.leads")}</h1>
       </div>
 
       <div className="flex items-center gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[140px] sm:w-[180px]">
             <SelectValue placeholder="สถานะทั้งหมด" />
           </SelectTrigger>
           <SelectContent>
@@ -392,6 +392,7 @@ export default function PartnerLeadsPage() {
               </p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -401,7 +402,7 @@ export default function PartnerLeadsPage() {
                   <TableHead>วันรับ-คืน</TableHead>
                   <TableHead>ราคารวม</TableHead>
                   <TableHead>สถานะ</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -511,6 +512,7 @@ export default function PartnerLeadsPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

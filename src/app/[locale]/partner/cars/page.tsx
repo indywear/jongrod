@@ -124,8 +124,8 @@ export default function PartnerCarsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t("partner.cars")}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold">{t("partner.cars")}</h1>
         <Link href="/partner/cars/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
@@ -136,7 +136,7 @@ export default function PartnerCarsPage() {
 
       <div className="flex items-center gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[140px] sm:w-[180px]">
             <SelectValue placeholder="สถานะทั้งหมด" />
           </SelectTrigger>
           <SelectContent>

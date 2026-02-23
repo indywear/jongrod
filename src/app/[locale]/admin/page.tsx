@@ -98,7 +98,7 @@ export default function AdminDashboard() {
     {
       title: "Partners ทั้งหมด",
       value: stats.totalPartners.toString(),
-      subValue: `${stats.activePartners} Active`,
+      subValue: `${stats.activePartners} ใช้งาน`,
       icon: Building2,
       color: "text-blue-600",
       bgColor: "bg-blue-100",

@@ -109,12 +109,12 @@ export default function AdminLeadsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">รายการจองทั้งหมด</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold">รายการจองทั้งหมด</h1>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="สถานะทั้งหมด" />
           </SelectTrigger>
           <SelectContent>

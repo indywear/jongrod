@@ -565,20 +565,20 @@ export default function CarsPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="text-2xl font-bold">{t("cars.title")}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">{t("cars.title")}</h2>
             {pagination && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                 {t("common.showing")} {cars.length} {t("common.of")} {pagination.total} {t("common.items")}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="md:hidden">
-                  <Filter className="h-4 w-4 mr-2" />
+                <Button variant="outline" size="sm" className="md:hidden">
+                  <Filter className="h-4 w-4 mr-1.5" />
                   {t("common.filter")}
                   {activeFilters.length > 0 && (
                     <Badge variant="destructive" className="ml-1.5 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
@@ -598,7 +598,7 @@ export default function CarsPage() {
             </Sheet>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[140px] sm:w-[180px]">
                 <SelectValue placeholder={t("common.sort")} />
               </SelectTrigger>
               <SelectContent>
