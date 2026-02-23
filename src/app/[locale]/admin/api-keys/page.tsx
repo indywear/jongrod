@@ -90,7 +90,7 @@ export default function ApiKeysPage() {
 
   const fetchPartners = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/partners")
+      const res = await fetch("/api/admin/partners?limit=500")
       if (res.ok) {
         const data = await res.json()
         setPartners(data.partners || [])
@@ -398,7 +398,7 @@ export default function ApiKeysPage() {
                           size="icon"
                           variant="ghost"
                           onClick={() => handleToggle(key.id, key.isActive)}
-                          title={key.isActive ? "Disable" : "Enable"}
+                          title={key.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
                         >
                           {key.isActive ? (
                             <ToggleRight className="h-4 w-4 text-green-600" />

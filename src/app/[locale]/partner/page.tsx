@@ -37,6 +37,8 @@ export default function PartnerDashboard() {
   useEffect(() => {
     if (!authLoading && user?.partnerId) {
       fetchDashboardData(user.partnerId)
+    } else if (!authLoading) {
+      setLoading(false)
     }
   }, [authLoading, user?.partnerId])
 
@@ -45,8 +47,8 @@ export default function PartnerDashboard() {
     try {
 
       const [carsResponse, leadsResponse] = await Promise.all([
-        fetch(`/api/partner/cars?partnerId=${partnerId}`),
-        fetch(`/api/partner/leads?partnerId=${partnerId}`),
+        fetch(`/api/partner/cars?partnerId=${partnerId}&limit=500`),
+        fetch(`/api/partner/leads?partnerId=${partnerId}&limit=500`),
       ])
       
       const carsData = await carsResponse.json()
@@ -123,7 +125,7 @@ export default function PartnerDashboard() {
       icon: TrendingUp,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
-      suffix: " THB",
+      suffix: " บาท",
     },
   ]
 
@@ -171,7 +173,7 @@ export default function PartnerDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Leads ล่าสุด</CardTitle>
+            <CardTitle>ลีดล่าสุด</CardTitle>
             <Link href="/partner/leads">
               <Button variant="ghost" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
@@ -183,7 +185,7 @@ export default function PartnerDashboard() {
             {recentLeads.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>ยังไม่มี Lead ในขณะนี้</p>
+                <p>ยังไม่มีลีดในขณะนี้</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -199,7 +201,7 @@ export default function PartnerDashboard() {
                       </p>
                     </div>
                     <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
-                      {lead.status}
+                      {lead.status === "NEW" ? "ใหม่" : lead.status === "CLAIMED" ? "รับแล้ว" : lead.status === "COMPLETED" ? "สำเร็จ" : lead.status === "CANCELLED" ? "ยกเลิก" : lead.status}
                     </span>
                   </div>
                 ))}
@@ -228,7 +230,7 @@ export default function PartnerDashboard() {
             <Link href="/partner/leads" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <ClipboardList className="h-4 w-4 mr-2" />
-                ดู Leads ทั้งหมด
+                ดูลีดทั้งหมด
               </Button>
             </Link>
           </CardContent>

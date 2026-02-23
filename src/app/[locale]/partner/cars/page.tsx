@@ -53,13 +53,15 @@ export default function PartnerCarsPage() {
   useEffect(() => {
     if (user?.partnerId) {
       fetchCars()
+    } else if (user !== undefined) {
+      setLoading(false)
     }
   }, [user?.partnerId])
 
   const fetchCars = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/partner/cars?partnerId=${user?.partnerId}`, {
+      const response = await fetch(`/api/partner/cars?partnerId=${user?.partnerId}&limit=500`, {
         credentials: "include",
       })
       const data = await response.json()
@@ -160,6 +162,7 @@ export default function PartnerCarsPage() {
               <p className="text-muted-foreground">ไม่มีรถ</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -200,7 +203,7 @@ export default function PartnerCarsPage() {
                       </div>
                     </TableCell>
                     <TableCell>{car.licensePlate}</TableCell>
-                    <TableCell>{Number(car.pricePerDay).toLocaleString()} THB</TableCell>
+                    <TableCell>{Number(car.pricePerDay).toLocaleString()} บาท</TableCell>
                     <TableCell>{getApprovalBadge(car.approvalStatus)}</TableCell>
                     <TableCell>{getRentalBadge(car.rentalStatus)}</TableCell>
                     <TableCell>
@@ -231,6 +234,7 @@ export default function PartnerCarsPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

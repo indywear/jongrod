@@ -41,8 +41,8 @@ export default function AdminDashboard() {
     setLoading(true)
     try {
       const [partnersRes, carsRes, docsRes, bookingsRes] = await Promise.all([
-        fetch("/api/admin/partners"),
-        fetch("/api/admin/cars?status=PENDING"),
+        fetch("/api/admin/partners?limit=500"),
+        fetch("/api/admin/cars?status=PENDING&limit=500"),
         fetch("/api/admin/documents/pending"),
         fetch("/api/admin/bookings/recent"),
       ])
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
 
   const statsDisplay = [
     {
-      title: "Partners ทั้งหมด",
+      title: "พาร์ทเนอร์ทั้งหมด",
       value: stats.totalPartners.toString(),
       subValue: `${stats.activePartners} ใช้งาน`,
       icon: Building2,
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
       bgColor: "bg-purple-100",
     },
     {
-      title: "Bookings วันนี้",
+      title: "การจองวันนี้",
       value: stats.totalBookings.toString(),
       icon: Coins,
       color: "text-green-600",
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                <span className="text-sm">Partners ที่ใช้งาน</span>
+                <span className="text-sm">พาร์ทเนอร์ที่ใช้งาน</span>
                 <span className="font-bold text-blue-600">{stats.activePartners} / {stats.totalPartners}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">

@@ -106,6 +106,8 @@ export default function PartnerLeadsPage() {
   useEffect(() => {
     if (!authLoading && partnerId) {
       fetchLeads()
+    } else if (!authLoading && !partnerId) {
+      setLoading(false)
     }
   }, [statusFilter, authLoading, partnerId])
 
@@ -115,8 +117,9 @@ export default function PartnerLeadsPage() {
     try {
       const params = new URLSearchParams()
       params.append("partnerId", partnerId)
+      params.append("limit", "500")
       if (statusFilter !== "all") params.append("status", statusFilter)
-      
+
       const response = await fetch(`/api/partner/leads?${params.toString()}`)
       const data = await response.json()
       setLeads(data.leads || [])
@@ -351,6 +354,13 @@ export default function PartnerLeadsPage() {
     }
   }
 
+  const calcDays = (pickup: string, returnD: string) => {
+    const start = new Date(pickup)
+    const end = new Date(returnD)
+    const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    return diff > 0 ? diff : 1
+  }
+
   const canEdit = (status: string) => ["NEW", "CLAIMED"].includes(status)
 
   return (
@@ -386,7 +396,7 @@ export default function PartnerLeadsPage() {
           ) : leads.length === 0 ? (
             <div className="text-center py-12">
               <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">ยังไม่มี Lead ในขณะนี้</p>
+              <p className="text-muted-foreground">ยังไม่มีลีดในขณะนี้</p>
               <p className="text-sm text-muted-foreground mt-2">
                 เมื่อมีลูกค้าจองรถ รายการจะแสดงที่นี่
               </p>
@@ -400,6 +410,7 @@ export default function PartnerLeadsPage() {
                   <TableHead>ลูกค้า</TableHead>
                   <TableHead>รถ</TableHead>
                   <TableHead>วันรับ-คืน</TableHead>
+                  <TableHead>จำนวนวัน</TableHead>
                   <TableHead>ราคารวม</TableHead>
                   <TableHead>สถานะ</TableHead>
                   <TableHead>จัดการ</TableHead>
@@ -416,7 +427,7 @@ export default function PartnerLeadsPage() {
                           {lead.isBlacklisted && (
                             <Badge className="bg-red-600 text-white text-xs">
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              Blacklist
+                              บัญชีดำ
                             </Badge>
                           )}
                         </div>
@@ -432,70 +443,22 @@ export default function PartnerLeadsPage() {
                         <p className="text-muted-foreground">{lead.returnDate}</p>
                       </div>
                     </TableCell>
-                    <TableCell>{lead.totalPrice.toLocaleString()} THB</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-semibold">
+                        {calcDays(lead.pickupDate, lead.returnDate)} วัน
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{lead.totalPrice.toLocaleString()} บาท</TableCell>
                     <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedLead(lead)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>รายละเอียดการจอง</DialogTitle>
-                            </DialogHeader>
-                            {selectedLead && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-sm text-muted-foreground">
-                                      เลขที่จอง
-                                    </p>
-                                    <p className="font-mono">
-                                      {selectedLead.bookingNumber}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm text-muted-foreground">
-                                      สถานะ
-                                    </p>
-                                    {getStatusBadge(selectedLead.status)}
-                                  </div>
-                                  <div>
-                                    <p className="text-sm text-muted-foreground">
-                                      ลูกค้า
-                                    </p>
-                                    <p>{selectedLead.customerName}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm text-muted-foreground">
-                                      เบอร์โทร
-                                    </p>
-                                    <p>{selectedLead.customerPhone}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm text-muted-foreground">รถ</p>
-                                    <p>{selectedLead.car.brand} {selectedLead.car.model} {selectedLead.car.year}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm text-muted-foreground">
-                                      ราคารวม
-                                    </p>
-                                    <p className="font-bold">
-                                      {selectedLead.totalPrice.toLocaleString()} THB
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedLead(lead)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         {canEdit(lead.status) && (
                           <Button
                             variant="outline"
@@ -516,6 +479,48 @@ export default function PartnerLeadsPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>รายละเอียดการจอง</DialogTitle>
+          </DialogHeader>
+          {selectedLead && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">เลขที่จอง</p>
+                  <p className="font-mono">{selectedLead.bookingNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">สถานะ</p>
+                  {getStatusBadge(selectedLead.status)}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">ลูกค้า</p>
+                  <p>{selectedLead.customerName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">เบอร์โทร</p>
+                  <p>{selectedLead.customerPhone}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">รถ</p>
+                  <p>{selectedLead.car.brand} {selectedLead.car.model} {selectedLead.car.year}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">จำนวนวัน</p>
+                  <p className="font-bold text-primary">{calcDays(selectedLead.pickupDate, selectedLead.returnDate)} วัน</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">ราคารวม</p>
+                  <p className="font-bold">{selectedLead.totalPrice.toLocaleString()} บาท</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={confirmDialog?.open} onOpenChange={(open) => !open && setConfirmDialog(null)}>
         <DialogContent>

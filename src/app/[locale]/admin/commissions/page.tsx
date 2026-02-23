@@ -59,10 +59,11 @@ export default function CommissionsPage() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
+      params.append("limit", "500")
       if (statusFilter !== "all") {
         params.append("status", statusFilter)
       }
-      
+
       const response = await fetch(`/api/admin/commissions?${params.toString()}`)
       const data = await response.json()
       setCommissions(data.commissions || [])
@@ -138,7 +139,7 @@ export default function CommissionsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">ยอดรวมที่ต้องจ่าย</p>
                 <p className="text-3xl font-bold text-primary">
-                  {pendingTotal.toLocaleString()} THB
+                  {pendingTotal.toLocaleString()} บาท
                 </p>
               </div>
               <div className="p-3 rounded-full bg-orange-100">
@@ -172,7 +173,7 @@ export default function CommissionsPage() {
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            Mark as Paid ({selectedIds.length})
+            จ่ายแล้ว ({selectedIds.length})
           </Button>
         </div>
       </div>
@@ -182,7 +183,7 @@ export default function CommissionsPage() {
           {commissions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Coins className="h-12 w-12 mb-4" />
-              <p>ไม่มีรายการ Commission</p>
+              <p>ไม่มีรายการค่าคอมมิชชั่น</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -190,11 +191,11 @@ export default function CommissionsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]"></TableHead>
-                  <TableHead>Partner</TableHead>
-                  <TableHead>Booking#</TableHead>
+                  <TableHead>พาร์ทเนอร์</TableHead>
+                  <TableHead>เลขจอง</TableHead>
                   <TableHead>ยอดจอง</TableHead>
-                  <TableHead>Rate</TableHead>
-                  <TableHead>Commission</TableHead>
+                  <TableHead>อัตรา</TableHead>
+                  <TableHead>ค่าคอมฯ</TableHead>
                   <TableHead>สถานะ</TableHead>
                   <TableHead>วันที่</TableHead>
                 </TableRow>
@@ -212,10 +213,10 @@ export default function CommissionsPage() {
                     </TableCell>
                     <TableCell className="font-medium">{comm.partner.name}</TableCell>
                     <TableCell className="font-mono">{comm.booking.bookingNumber}</TableCell>
-                    <TableCell>{Number(comm.bookingAmount).toLocaleString()} THB</TableCell>
+                    <TableCell>{Number(comm.bookingAmount).toLocaleString()} บาท</TableCell>
                     <TableCell>{Number(comm.commissionRate)}%</TableCell>
                     <TableCell className="font-bold">
-                      {Number(comm.commissionAmount).toLocaleString()} THB
+                      {Number(comm.commissionAmount).toLocaleString()} บาท
                     </TableCell>
                     <TableCell>
                       <Badge
